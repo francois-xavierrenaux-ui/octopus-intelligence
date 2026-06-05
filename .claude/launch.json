@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "octopus-api-explorer",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 3001,
+      "autoPort": false
+    }
+  ]
+}

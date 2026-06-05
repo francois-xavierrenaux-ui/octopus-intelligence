@@ -1,0 +1,2917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Octopus Intelligence — Directeur Qualité Virtuel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --or:#f97316;--ord:#ea6c00;--orl:#fff7ed;
+  --navy:#1a2e4a;--navy2:#243d62;--navy3:#2d4a6e;
+  --gr:#22c55e;--grl:#f0fdf4;
+  --re:#ef4444;--rel:#fef2f2;
+  --am:#f59e0b;--aml:#fffbeb;
+  --bl:#3b82f6;--bll:#eff6ff;
+  --te:#14b8a6;--tel:#f0fdfa;
+  --pu:#8b5cf6;--pul:#f5f3ff;
+  --bg:#f1f5f9;--card:#fff;--border:#e2e8f0;
+  --txt:#0f172a;--muted:#64748b;--light:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.6;}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+header{background:var(--navy);color:#fff;height:56px;display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.h-logo{font-size:1.05rem;font-weight:800;letter-spacing:-.5px;color:#fff;}
+.h-logo span{color:var(--or);}
+.h-tag{background:rgba(249,115,22,.2);border:1px solid rgba(249,115,22,.4);border-radius:5px;padding:2px 9px;font-size:.64rem;font-weight:800;letter-spacing:.1em;color:var(--or);text-transform:uppercase;}
+.h-sep{width:1px;height:22px;background:rgba(255,255,255,.12);}
+.h-conn{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:.75rem;color:var(--light);}
+.dot{width:8px;height:8px;border-radius:50%;background:#475569;}
+.dot.ok{background:var(--gr);box-shadow:0 0 8px rgba(34,197,94,.5);}
+.dot.err{background:var(--re);}
+
+/* ─── TABS ───────────────────────────────────────────────── */
+.tabs{background:var(--navy2);display:flex;padding:0 20px;gap:0;position:sticky;top:56px;z-index:200;overflow-x:auto;border-bottom:1px solid var(--navy3);}
+.tab{display:flex;align-items:center;gap:5px;padding:13px 16px;border:none;background:none;cursor:pointer;font-size:.8rem;font-weight:500;color:var(--light);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s;}
+.tab:hover{color:#e2e8f0;}
+.tab.on{color:#fff;border-bottom-color:var(--or);font-weight:700;}
+.tab-icon{font-size:.9rem;}
+
+/* ─── PERIOD BAR ─────────────────────────────────────────── */
+.pbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pbar-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.dpair{display:flex;align-items:center;gap:7px;}
+.dpair span{font-size:.8rem;color:var(--muted);}
+input[type=date]{border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:.82rem;outline:none;background:#fff;cursor:pointer;}
+input[type=date]:focus{border-color:var(--or);}
+.presets{display:flex;gap:4px;}
+.pre{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-size:.74rem;cursor:pointer;color:var(--muted);transition:all .15s;}
+.pre:hover,.pre.on{background:var(--orl);border-color:var(--or);color:var(--or);}
+.btn-go{background:var(--or);color:#fff;border:none;border-radius:7px;padding:7px 20px;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .15s;margin-left:4px;}
+.btn-go:hover{background:var(--ord);}
+.btn-go:disabled{background:#94a3b8;}
+.btn-codir{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:.78rem;font-weight:700;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:6px;}
+.btn-codir:hover{background:var(--navy3);}
+
+/* ─── OVERLAY ────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:600;flex-direction:column;align-items:center;justify-content:center;gap:16px;backdrop-filter:blur(6px);}
+.overlay.on{display:flex;}
+.spin{width:44px;height:44px;border:3px solid rgba(249,115,22,.2);border-top-color:var(--or);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin-txt{font-size:.9rem;color:#e2e8f0;font-weight:500;}
+
+/* ─── CONTENT ────────────────────────────────────────────── */
+.content{padding:20px 24px;max-width:1440px;margin:0 auto;}
+.view{display:none;animation:fi .2s ease;} .view.on{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.empty{text-align:center;padding:90px 20px;color:var(--muted);}
+.empty-ic{font-size:3rem;margin-bottom:14px;}
+.empty h2{font-size:1.1rem;color:var(--or);margin-bottom:8px;}
+.empty p{font-size:.85rem;}
+
+/* ─── SECTIONS ───────────────────────────────────────────── */
+.sec{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin:22px 0 10px;display:flex;align-items:center;gap:10px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ─── CARDS ──────────────────────────────────────────────── */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;}
+.card-t{font-size:.86rem;font-weight:700;margin-bottom:14px;color:var(--txt);}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:1000px){.g3,.g4{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.g2,.g3,.g4{grid-template-columns:1fr;}}
+
+/* ─── KPI CARDS ──────────────────────────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+.kpi{background:var(--card);border-radius:var(--r);padding:15px 17px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;background:var(--or);}
+.kpi.gr .kpi-accent{background:var(--gr);}
+.kpi.re .kpi-accent{background:var(--re);}
+.kpi.bl .kpi-accent{background:var(--bl);}
+.kpi.te .kpi-accent{background:var(--te);}
+.kpi.am .kpi-accent{background:var(--am);}
+.kpi-l{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;}
+.kpi-v{font-size:2rem;font-weight:800;line-height:1;letter-spacing:-.5px;}
+.kpi-s{font-size:.68rem;color:var(--muted);margin-top:3px;}
+.up{color:var(--gr);font-weight:700;}
+.dn{color:var(--re);font-weight:700;}
+.fl{color:var(--muted);}
+
+/* ─── CHART BOX ──────────────────────────────────────────── */
+.cb{position:relative;}
+.cb.h180{height:180px;} .cb.h220{height:220px;} .cb.h260{height:260px;} .cb.h300{height:300px;} .cb.h340{height:340px;}
+
+/* ─── TABLE ──────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;font-size:.82rem;}
+th{background:#f8fafc;border-bottom:2px solid var(--border);padding:8px 11px;text-align:left;font-weight:700;color:var(--muted);white-space:nowrap;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;}
+td{padding:8px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.tr{text-align:right;}
+.cr{cursor:pointer;}
+.cr:hover td{background:#f8fafc;}
+
+/* ─── SCORE GAUGE ────────────────────────────────────────── */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.gauge-label{font-size:.72rem;font-weight:700;text-align:center;}
+
+/* ─── COMPLIANCE CARD ────────────────────────────────────── */
+.comp-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;text-align:center;cursor:pointer;transition:all .2s;border:2px solid transparent;}
+.comp-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.comp-name{font-weight:700;font-size:.88rem;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.comp-level{font-size:.7rem;font-weight:800;padding:3px 10px;border-radius:8px;display:inline-block;margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+.comp-maturity{display:flex;gap:3px;justify-content:center;margin-top:8px;}
+.mat-dot{width:18px;height:6px;border-radius:3px;background:#e2e8f0;}
+.mat-dot.on{background:var(--or);}
+
+/* ─── BADGES ─────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:700;white-space:nowrap;}
+.b-gr{background:var(--grl);color:#15803d;}
+.b-te{background:var(--tel);color:#0f766e;}
+.b-am{background:var(--aml);color:#b45309;}
+.b-re{background:var(--rel);color:#b91c1c;}
+.b-or{background:var(--orl);color:var(--ord);}
+.b-pu{background:var(--pul);color:#6d28d9;}
+.b-bl{background:var(--bll);color:#1d4ed8;}
+.b-navy{background:rgba(15,23,42,.08);color:var(--navy3);}
+
+/* ─── PROGRESS BAR ───────────────────────────────────────── */
+.pb{background:#f1f5f9;border-radius:4px;height:6px;overflow:hidden;}
+.pb-f{height:100%;border-radius:4px;transition:width .6s ease;}
+
+/* ─── NARRATIVE ──────────────────────────────────────────── */
+.narrative{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#e2e8f0;border-radius:var(--r);padding:22px 24px;font-size:.85rem;line-height:1.8;box-shadow:var(--shadow-md);}
+.narrative strong{color:#fff;}
+.narrative .nar-title{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--or);margin-bottom:12px;display:block;}
+.nar-line{margin-bottom:4px;}
+
+/* ─── ANOMALY CARDS ──────────────────────────────────────── */
+.anom-list{display:flex;flex-direction:column;gap:8px;}
+.anom{display:flex;gap:12px;background:var(--card);border-radius:9px;padding:13px 15px;box-shadow:var(--shadow);border-left:4px solid var(--border);cursor:pointer;transition:all .15s;}
+.anom:hover{transform:translateX(3px);}
+.anom.critical{border-left-color:var(--re);}
+.anom.high{border-left-color:var(--am);}
+.anom.medium{border-left-color:var(--bl);}
+.anom-ic{font-size:1.1rem;flex-shrink:0;}
+.anom-t{font-weight:700;font-size:.84rem;margin-bottom:2px;}
+.anom-d{font-size:.77rem;color:var(--muted);}
+.anom-action{font-size:.73rem;color:var(--bl);margin-top:4px;}
+.anom-meta{display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap;}
+.sev-pill{font-size:.66rem;font-weight:800;padding:1px 7px;border-radius:7px;}
+.sp-c{background:#fee2e2;color:#991b1b;}
+.sp-h{background:var(--aml);color:#92400e;}
+.sp-m{background:var(--bll);color:#1e40af;}
+
+/* ─── SPARKLINE ──────────────────────────────────────────── */
+.spark{display:inline-block;vertical-align:middle;}
+
+/* ─── ACTION PLAN ────────────────────────────────────────── */
+.p1-pill{background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:800;}
+.p2-pill{background:var(--aml);color:#92400e;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:800;}
+.p3-pill{background:var(--bll);color:#1e40af;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:800;}
+.status-open{background:#f1f5f9;color:var(--muted);padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;}
+.status-done{background:var(--grl);color:#15803d;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;}
+
+/* ─── RISK MATRIX ────────────────────────────────────────── */
+.risk-matrix{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--border);border-radius:8px;overflow:hidden;}
+.rm-cell{padding:14px;position:relative;}
+.rm-q1{background:rgba(239,68,68,.08);}
+.rm-q2{background:rgba(34,197,94,.06);}
+.rm-q3{background:rgba(239,68,68,.04);}
+.rm-q4{background:rgba(59,130,246,.06);}
+.rm-label{font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.rm-dots{display:flex;flex-direction:column;gap:6px;}
+.rm-dot{display:flex;align-items:center;gap:8px;font-size:.8rem;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background .15s;}
+.rm-dot:hover{background:rgba(0,0,0,.04);}
+
+/* ─── HEATMAP ────────────────────────────────────────────── */
+.hm-wrap{overflow-x:auto;padding:4px 0 8px;}
+.hm-grid{display:grid;grid-template-rows:repeat(7,13px);grid-auto-flow:column;gap:2px;width:max-content;}
+.hm-cell{width:13px;height:13px;border-radius:2px;cursor:pointer;transition:transform .1s;}
+.hm-cell:hover{transform:scale(1.5);z-index:5;position:relative;}
+.hm-empty{width:13px;height:13px;}
+.lv0{background:#f1f5f9;} .lv1{background:#fcd34d;opacity:.5;} .lv2{background:#fbbf24;} .lv3{background:var(--or);} .lv4{background:var(--ord);}
+
+/* ─── MODAL ──────────────────────────────────────────────── */
+.mbg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:500;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.mbg.on{display:flex;}
+.modal{background:var(--card);border-radius:14px;padding:24px;max-width:680px;width:92vw;max-height:88vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2);}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.mh-t{font-size:1rem;font-weight:800;}
+.mcl{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;}
+
+/* ─── CODIR PRESENTATION ─────────────────────────────────── */
+.codir-bg{display:none;position:fixed;inset:0;background:var(--navy);z-index:900;flex-direction:column;}
+.codir-bg.on{display:flex;}
+.codir-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center;position:relative;}
+.slide-nav{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;}
+.snav{background:rgba(255,255,255,.1);border:none;border-radius:8px;padding:8px 20px;color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s;}
+.snav:hover{background:rgba(255,255,255,.2);}
+.snav:disabled{opacity:.3;cursor:not-allowed;}
+.slide-count{color:rgba(255,255,255,.5);font-size:.8rem;}
+.slide-close{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:6px 14px;font-size:.8rem;cursor:pointer;}
+.slide-close:hover{background:rgba(255,255,255,.2);}
+.sl-eyebrow{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--or);margin-bottom:12px;}
+.sl-title{font-size:2.6rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.1;margin-bottom:14px;}
+.sl-sub{font-size:1rem;color:rgba(255,255,255,.6);max-width:600px;}
+.sl-score{font-size:5rem;font-weight:900;line-height:1;letter-spacing:-3px;}
+.sl-level{font-size:1.1rem;font-weight:700;padding:6px 18px;border-radius:10px;display:inline-block;margin-top:8px;}
+.sl-table{width:100%;max-width:700px;border-collapse:collapse;margin:0 auto;}
+.sl-table th{color:rgba(255,255,255,.5);font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:8px 16px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1);}
+.sl-table td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);color:#e2e8f0;font-size:.92rem;}
+.sl-table .sc{font-weight:800;font-size:1.1rem;}
+.sl-risks{text-align:left;max-width:640px;width:100%;}
+.sl-risk-item{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.sl-risk-ic{font-size:1.4rem;flex-shrink:0;margin-top:2px;}
+.sl-risk-t{color:#fff;font-weight:700;font-size:.95rem;}
+.sl-risk-d{color:rgba(255,255,255,.55);font-size:.82rem;margin-top:2px;}
+.sl-actions{text-align:left;max-width:640px;width:100%;}
+.sl-action-item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.sl-p{font-size:.72rem;font-weight:800;padding:3px 8px;border-radius:6px;min-width:28px;text-align:center;}
+.sl-p.p1{background:#dc2626;color:#fff;}
+.sl-p.p2{background:#d97706;color:#fff;}
+.sl-p.p3{background:#2563eb;color:#fff;}
+.sl-reco{text-align:left;max-width:640px;width:100%;}
+.sl-reco-item{padding:16px 0;border-bottom:1px solid rgba(255,255,255,.07);display:flex;gap:12px;align-items:flex-start;}
+.sl-num{width:28px;height:28px;border-radius:50%;background:var(--or);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;margin-top:2px;}
+.sl-reco-t{color:#fff;font-weight:700;font-size:.92rem;}
+.sl-reco-d{color:rgba(255,255,255,.55);font-size:.8rem;margin-top:3px;}
+
+/* ─── PERIOD BADGE ───────────────────────────────────────── */
+.pbadge{display:inline-flex;align-items:center;gap:6px;background:var(--orl);color:var(--or);border-radius:6px;padding:4px 11px;font-size:.74rem;font-weight:700;margin-bottom:16px;border:1px solid rgba(232,119,34,.2);}
+
+/* ─── MISC ───────────────────────────────────────────────── */
+.score-impact{font-size:.72rem;font-weight:700;color:var(--gr);background:var(--grl);padding:1px 7px;border-radius:6px;}
+.rank-medal{font-size:1.1rem;}
+.clickable{cursor:pointer;}
+.tag{font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:5px;background:var(--bg);color:var(--muted);}
+
+/* ─── INTERACTIVE BR ─────────────────────────────────────── */
+#ibr{display:none;position:fixed;inset:0;z-index:900;flex-direction:column;background:#0d1b2a;overflow:hidden;}
+#ibr.on{display:flex;}
+#ibr-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(249,115,22,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(30,136,229,.1) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(34,197,94,.07) 0%,transparent 50%),#0d1b2a;animation:ibr-bg 10s ease infinite alternate;}
+@keyframes ibr-bg{0%{background-position:0 0,100% 0,0 100%;}100%{background-position:100% 100%,0 100%,100% 0;}}
+#ibr-progress-bar{height:3px;background:rgba(255,255,255,.1);flex-shrink:0;position:relative;z-index:2;}
+#ibr-progress-fill{height:100%;background:linear-gradient(90deg,var(--or),#f59e0b);transition:width .6s ease;border-radius:0 2px 2px 0;}
+#ibr-header{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;flex-shrink:0;position:relative;z-index:2;}
+#ibr-dots{display:flex;gap:6px;}
+.ibr-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .3s;}
+.ibr-dot.cur{background:var(--or);transform:scale(1.3);}
+.ibr-dot.done{background:rgba(249,115,22,.5);}
+#ibr-close{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);border-radius:8px;padding:6px 14px;font-size:.8rem;cursor:pointer;transition:background .15s;}
+#ibr-close:hover{background:rgba(255,255,255,.2);}
+#ibr-timer-bar{height:2px;background:rgba(249,115,22,.3);position:absolute;bottom:0;left:0;background:var(--or);}
+#ibr-content{flex:1;display:flex;align-items:center;justify-content:center;padding:0 40px;position:relative;z-index:1;overflow:hidden;}
+.ibr-slide{width:100%;max-width:960px;animation:ibr-in .5s ease;}
+@keyframes ibr-in{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+#ibr-narrator{margin:0 28px;padding:14px 20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;font-size:.88rem;color:rgba(255,255,255,.85);min-height:56px;line-height:1.7;position:relative;z-index:2;transition:all .3s;}
+#ibr-narrator::before{content:'🎙';position:absolute;top:-10px;left:20px;font-size:.85rem;}
+#ibr-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 28px 18px;flex-shrink:0;position:relative;z-index:2;}
+.ibr-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:9px 22px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;}
+.ibr-btn:hover{background:rgba(255,255,255,.22);}
+.ibr-btn:disabled{opacity:.3;cursor:not-allowed;}
+.ibr-btn.primary{background:var(--or);border-color:var(--or);}
+.ibr-btn.primary:hover{background:var(--ord);}
+#ibr-slide-label{font-size:.8rem;color:rgba(255,255,255,.5);}
+/* Slide elements */
+.ibr-eyebrow{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--or);margin-bottom:12px;}
+.ibr-title{font-size:2.6rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.1;margin-bottom:10px;}
+.ibr-sub{color:rgba(255,255,255,.55);font-size:1rem;}
+.ibr-score-big{font-size:6rem;font-weight:900;line-height:1;letter-spacing:-4px;}
+.ibr-kpi-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:20px 0;}
+.ibr-kpi{text-align:center;background:rgba(255,255,255,.07);border-radius:10px;padding:16px 24px;min-width:120px;}
+.ibr-kpi-v{font-size:2.4rem;font-weight:900;color:#fff;letter-spacing:-1px;}
+.ibr-kpi-l{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.45);margin-top:3px;}
+.ibr-r-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+.ibr-r-card{background:rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;opacity:0;animation:ibr-in .4s ease forwards;}
+.ibr-r-card:hover{border-color:rgba(255,255,255,.3);}
+.ibr-r-name{font-weight:700;font-size:.85rem;color:#fff;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ibr-sig{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:8px;display:inline-block;margin-top:6px;}
+.ibr-anom-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;}
+.ibr-anom{display:flex;gap:12px;background:rgba(255,255,255,.07);border-radius:8px;padding:11px 14px;border-left:3px solid transparent;opacity:0;animation:ibr-in .4s ease forwards;}
+.ibr-anom.critical{border-left-color:#ef4444;} .ibr-anom.high{border-left-color:#f59e0b;} .ibr-anom.medium{border-left-color:#3b82f6;}
+.ibr-anom-t{color:#fff;font-weight:700;font-size:.84rem;margin-bottom:2px;}
+.ibr-anom-d{color:rgba(255,255,255,.55);font-size:.76rem;}
+.ibr-action-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;}
+.ibr-action{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.07);border-radius:8px;padding:12px 14px;cursor:pointer;opacity:0;animation:ibr-in .4s ease forwards;}
+.ibr-action:hover{background:rgba(255,255,255,.12);}
+.ibr-action input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--or);flex-shrink:0;margin-top:2px;}
+.ibr-action.checked{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);}
+.ibr-action-t{color:#fff;font-weight:700;font-size:.84rem;}
+.ibr-action-s{color:rgba(255,255,255,.5);font-size:.74rem;margin-top:2px;}
+.ibr-mod-bars{display:flex;flex-direction:column;gap:8px;}
+.ibr-mod-bar-row{display:flex;align-items:center;gap:10px;opacity:0;animation:ibr-in .3s ease forwards;}
+.ibr-mod-name{width:150px;font-size:.78rem;color:rgba(255,255,255,.75);text-align:right;flex-shrink:0;}
+.ibr-mod-track{flex:1;background:rgba(255,255,255,.1);border-radius:4px;height:20px;overflow:hidden;}
+.ibr-mod-fill{height:100%;border-radius:4px;transition:width 1.2s ease;width:0;}
+.ibr-mod-val{width:60px;font-size:.78rem;font-weight:700;color:#fff;flex-shrink:0;}
+.ibr-reco-list{display:flex;flex-direction:column;gap:6px;}
+.ibr-reco-item{display:flex;gap:10px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.07);opacity:0;animation:ibr-in .3s ease forwards;}
+.ibr-reco-n{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;}
+.ibr-reco-t{color:#fff;font-weight:700;font-size:.83rem;}
+.ibr-reco-s{color:rgba(255,255,255,.5);font-size:.74rem;margin-top:1px;}
+.ibr-timeline{display:flex;flex-direction:column;gap:0;}
+.ibr-tl-item{display:flex;gap:16px;position:relative;opacity:0;animation:ibr-in .4s ease forwards;}
+.ibr-tl-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.ibr-tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.ibr-tl-line-v{width:2px;flex:1;background:rgba(255,255,255,.1);margin:4px 0;}
+.ibr-tl-body{padding-bottom:16px;}
+.ibr-tl-title{color:#fff;font-weight:700;font-size:.84rem;}
+.ibr-tl-sub{color:rgba(255,255,255,.5);font-size:.74rem;margin-top:2px;}
+.ibr-tl-dl{font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:5px;margin-top:5px;display:inline-block;}
+.ibr-score-bar{background:rgba(255,255,255,.1);border-radius:8px;height:20px;overflow:hidden;margin-top:10px;}
+.ibr-score-fill{height:100%;border-radius:8px;transition:width 1.5s ease;}
+/* Audit */
+.audit-card{background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;border-left:4px solid var(--border);}
+.audit-ok{border-left-color:var(--gr);}
+.audit-warn{border-left-color:var(--am);}
+.audit-err{border-left-color:var(--re);}
+.audit-title{font-weight:700;font-size:.84rem;margin-bottom:4px;}
+.audit-detail{font-size:.74rem;color:var(--muted);line-height:1.7;}
+.audit-field{background:#f8fafc;border-radius:4px;padding:1px 6px;font-family:monospace;font-size:.72rem;color:var(--navy3);margin:1px;}
+.audit-score{font-size:2.2rem;font-weight:900;text-align:center;}
+
+/* ─── LEAFLET CUSTOM ─────────────────────────────────────── */
+.leaflet-tooltip-haccp {
+  background:#fff;border:none;border-radius:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+  padding:10px 12px;font-size:.82rem;
+}
+.leaflet-tooltip-haccp::before{display:none;}
+.leaflet-popup-haccp .leaflet-popup-content-wrapper{
+  border-radius:12px;padding:0;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.leaflet-popup-haccp .leaflet-popup-content{margin:14px 16px;}
+.leaflet-popup-haccp .leaflet-popup-tip-container{display:none;}
+.pulse-ring{animation:pulse-map 2s ease-in-out infinite;}
+@keyframes pulse-map{0%,100%{stroke-opacity:.5;stroke-width:1;}50%{stroke-opacity:.15;stroke-width:4;}}
+.map-list-item{transition:background .15s;}
+.map-list-item:hover{background:var(--orl)!important;cursor:pointer;}
+
+/* ─── DOCS & SUIVI ───────────────────────────────────────── */
+.doc-nav{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;border-bottom:2px solid var(--border);padding-bottom:10px;}
+.doc-tab{background:none;border:none;padding:7px 16px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;border-radius:6px;transition:all .15s;}
+.doc-tab:hover{background:var(--orl);color:var(--or);}
+.doc-tab.on{background:var(--or);color:#fff;}
+.doc-section{display:none;} .doc-section.on{display:block;}
+
+/* Kanban */
+.kanban{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+@media(max-width:900px){.kanban{grid-template-columns:1fr;}}
+.kan-col{background:#f8fafc;border-radius:10px;padding:14px;}
+.kan-col-head{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.kan-count{background:#fff;border-radius:10px;padding:1px 8px;font-size:.72rem;font-weight:700;color:var(--muted);}
+.kan-card{background:#fff;border-radius:8px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.07);cursor:pointer;border-left:3px solid transparent;transition:all .15s;}
+.kan-card:hover{box-shadow:0 3px 10px rgba(0,0,0,.1);transform:translateY(-1px);}
+.kan-card.open{border-left-color:var(--re);}
+.kan-card.in_progress{border-left-color:var(--am);}
+.kan-card.done{border-left-color:var(--gr);opacity:.75;}
+.kan-card.done .kan-title{text-decoration:line-through;color:var(--muted);}
+.kan-title{font-weight:700;font-size:.83rem;margin-bottom:5px;}
+.kan-meta{font-size:.72rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.kan-tag{background:var(--bg);padding:1px 7px;border-radius:5px;font-size:.68rem;}
+.kan-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:4px;}
+.kan-status-btn{border:none;border-radius:5px;padding:3px 10px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s;}
+.owner-input{border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:.72rem;outline:none;width:130px;color:var(--txt);}
+.owner-input:focus{border-color:var(--or);}
+.prog-bar-header{background:var(--bg);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.prog-track{flex:1;background:var(--border);border-radius:4px;height:10px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--or),var(--gr));transition:width .6s;}
+
+/* Email */
+.email-box{background:#f8fafc;border-radius:8px;padding:16px;border:1px solid var(--border);font-family:'Courier New',monospace;font-size:.78rem;line-height:1.7;white-space:pre-wrap;max-height:480px;overflow-y:auto;color:var(--txt);}
+.copy-btn{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:.75rem;font-weight:700;cursor:pointer;transition:background .15s;}
+.copy-btn:hover{background:var(--navy2);}
+.copy-btn.copied{background:var(--gr);}
+.email-subject{background:var(--orl);border:1px solid rgba(249,115,22,.3);border-radius:6px;padding:8px 14px;font-size:.82rem;font-weight:600;color:var(--or);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+
+/* BR Document */
+.br-doc{background:#fff;border-radius:12px;padding:32px 36px;box-shadow:var(--shadow-md);max-width:860px;margin:0 auto;}
+.br-header{text-align:center;border-bottom:3px solid var(--or);padding-bottom:20px;margin-bottom:24px;}
+.br-logo{font-size:1.2rem;font-weight:900;color:var(--navy);letter-spacing:-.5px;}
+.br-title{font-size:1.6rem;font-weight:900;color:var(--navy);margin:8px 0 4px;}
+.br-sub{font-size:.85rem;color:var(--muted);}
+.br-sec-title{font-size:1rem;font-weight:800;color:var(--or);border-left:4px solid var(--or);padding-left:12px;margin:22px 0 12px;}
+.br-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.br-kpi{text-align:center;padding:12px;background:#f8fafc;border-radius:8px;}
+.br-kpi-v{font-size:1.6rem;font-weight:900;color:var(--navy);}
+.br-kpi-l{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:2px;}
+.br-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-bottom:16px;}
+.br-table th{background:#f1f5f9;padding:7px 10px;text-align:left;font-weight:700;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;}
+.br-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.br-score{font-weight:900;font-size:1rem;}
+.br-print-btn{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:8px 18px;font-size:.82rem;font-weight:700;cursor:pointer;margin-left:auto;display:block;}
+@media print{.tabs,.pbar,header,.doc-nav,.br-print-btn,.btn-go,.btn-codir{display:none!important;}.br-doc{box-shadow:none;padding:0;}}
+
+/* Roadmap Todo */
+.roadmap-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:800px){.roadmap-grid{grid-template-columns:1fr;}}
+.road-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;}
+.road-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;}
+.road-body{flex:1;}
+.road-title{font-weight:700;font-size:.84rem;margin-bottom:2px;}
+.road-sub{font-size:.74rem;color:var(--muted);}
+.road-deadline{font-size:.7rem;font-weight:700;padding:1px 8px;border-radius:5px;margin-top:4px;display:inline-block;}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:1100px){
+  .g4{grid-template-columns:1fr 1fr;}
+  .br-kpis{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:900px){
+  .kanban{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr;}
+  .roadmap-grid{grid-template-columns:1fr;}
+  .ibr-roadmap-grid{grid-template-columns:1fr;}
+}
+@media(max-width:768px){
+  header{height:auto;padding:10px 14px;flex-wrap:wrap;gap:6px;}
+  .h-conn{margin-left:0;order:3;width:100%;}
+  .tabs{padding:0 8px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tabs::-webkit-scrollbar{height:3px;}
+  .tab{padding:10px 11px;font-size:.75rem;white-space:nowrap;}
+  .tab-icon{font-size:.8rem;}
+  .pbar{padding:8px 12px;gap:6px;flex-direction:column;align-items:flex-start;}
+  .dpair{width:100%;}
+  .dpair input[type=date]{flex:1;}
+  .presets,.btn-go,.btn-codir{width:auto;}
+  .content{padding:12px 14px;}
+  .kpis{grid-template-columns:1fr 1fr;}
+  .kpi-v{font-size:1.5rem;}
+  .g2{grid-template-columns:1fr;}
+  .g3{grid-template-columns:1fr;}
+  .g4{grid-template-columns:1fr 1fr;}
+  .kanban{grid-template-columns:1fr;}
+  .br-doc{padding:18px 14px;}
+  .br-kpis{grid-template-columns:1fr 1fr;}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .cb.h340,.cb.h360{height:240px;}
+  .cb.h300{height:220px;}
+  .cb.h260,.cb.h280{height:200px;}
+  .cb.h240,.cb.h220{height:180px;}
+  .risk-matrix{grid-template-columns:1fr;}
+  .doc-nav{flex-wrap:wrap;}
+  .doc-tab{font-size:.72rem;padding:5px 9px;}
+  .email-box{font-size:.72rem;}
+  .prof-cards{grid-template-columns:1fr 1fr;}
+  .ibr-title{font-size:2rem;letter-spacing:-.5px;}
+  .ibr-score-big{font-size:3.5rem;}
+  .ibr-kpi-v{font-size:1.8rem;}
+  .ibr-kpi{padding:10px 14px;min-width:90px;}
+  .ibr-r-grid{grid-template-columns:1fr 1fr;}
+  #ibr-content{padding:0 12px;}
+  #ibr-narrator{margin:0 10px;font-size:.8rem;padding:10px 14px;}
+  #ibr-nav{padding:8px 12px 12px;}
+  .ibr-btn{padding:7px 14px;font-size:.78rem;}
+  #ibr-header{padding:10px 14px;}
+  .codir-slide{padding:20px 16px;}
+  .sl-title{font-size:1.8rem;}
+  .sl-score{font-size:4rem;}
+  .sl-table th,.sl-table td{padding:7px 10px;}
+  #map-sidebar{display:none;}
+}
+@media(max-width:480px){
+  .kpis{grid-template-columns:1fr;}
+  .g4{grid-template-columns:1fr;}
+  .br-kpis{grid-template-columns:1fr;}
+  .prof-cards{grid-template-columns:1fr;}
+  .ibr-r-grid{grid-template-columns:1fr;}
+  .h-tag{display:none;}
+  .h-sep{display:none;}
+  .btn-codir{display:none;}
+  .ibr-title{font-size:1.6rem;}
+  .ibr-kpi{min-width:70px;padding:8px 10px;}
+  .ibr-kpi-v{font-size:1.5rem;}
+  .ibr-mod-name{width:100px;font-size:.72rem;}
+}
+
+/* ─── IBR EDIT MODE ──────────────────────────────────────── */
+.ibr-edit-mode #ibr-slide [data-editable]{outline:1px dashed rgba(249,115,22,.5);border-radius:3px;cursor:text;padding:1px 3px;}
+.ibr-edit-mode #ibr-slide [data-editable]:hover{outline-color:var(--or);background:rgba(249,115,22,.08);}
+.ibr-edit-mode #ibr-slide [data-editable]:focus{outline:2px solid var(--or);background:rgba(249,115,22,.12);}
+.ibr-edit-mode #ibr-narrator{outline:1px dashed rgba(249,115,22,.4);cursor:text;}
+.ibr-edit-mode #ibr-narrator:focus{outline:2px solid var(--or);}
+#ibr-cfg-panel{position:absolute;top:0;right:0;bottom:0;width:300px;background:rgba(10,20,35,.95);border-left:1px solid rgba(255,255,255,.1);backdrop-filter:blur(10px);padding:16px;overflow-y:auto;transform:translateX(100%);transition:transform .3s ease;z-index:10;}
+#ibr-cfg-panel.open{transform:translateX(0);}
+#ibr-cfg-panel label{display:flex;align-items:center;gap:8px;font-size:.78rem;color:rgba(255,255,255,.75);margin-bottom:8px;cursor:pointer;}
+#ibr-cfg-panel input[type=text],#ibr-cfg-panel input[type=number],#ibr-cfg-panel textarea{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:6px 10px;color:#fff;font-size:.8rem;width:100%;outline:none;margin-bottom:8px;}
+#ibr-cfg-panel input[type=text]:focus,#ibr-cfg-panel input[type=number]:focus,#ibr-cfg-panel textarea:focus{border-color:rgba(249,115,22,.6);}
+#ibr-cfg-panel input[type=checkbox]{accent-color:var(--or);width:15px;height:15px;}
+.cfg-section{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08);}
+.cfg-section-title{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(249,115,22,.9);margin-bottom:10px;}
+.cfg-btn{background:var(--or);border:none;border-radius:6px;padding:7px 14px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;width:100%;margin-bottom:6px;transition:background .15s;}
+.cfg-btn:hover{background:var(--ord);}
+.cfg-btn.secondary{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
+.cfg-btn.secondary:hover{background:rgba(255,255,255,.18);}
+.ibr-edit-toolbar{display:none;position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(10,20,35,.9);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 12px;display:flex;gap:8px;align-items:center;z-index:5;}
+.ibr-edit-toolbar button{background:none;border:none;color:rgba(255,255,255,.7);font-size:.75rem;cursor:pointer;padding:3px 8px;border-radius:4px;transition:background .15s;}
+.ibr-edit-toolbar button:hover{background:rgba(255,255,255,.12);color:#fff;}
+.ibr-note-badge{position:absolute;top:10px;right:10px;background:var(--or);color:#fff;border-radius:6px;padding:3px 9px;font-size:.7rem;font-weight:700;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- Interactive Business Review -->
+<div id="ibr">
+  <div id="ibr-bg"></div>
+  <!-- CSM Config Panel -->
+  <div id="ibr-cfg-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-weight:800;color:#fff;font-size:.9rem">⚙️ Personnalisation BR</div>
+      <button onclick="toggleIBRConfig()" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:.9rem">✕</button>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">Informations client</div>
+      <input type="text" id="cfg-client-name" placeholder="Nom du groupe client"/>
+      <input type="text" id="cfg-client-subtitle" placeholder="Sous-titre (ex: Chaîne de restaurants)"/>
+      <input type="text" id="cfg-csm-name" placeholder="Votre nom (CSM)"/>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">Objectif score</div>
+      <input type="number" id="cfg-target" min="1" max="100" placeholder="75"/>
+      <div style="font-size:.7rem;color:rgba(255,255,255,.4)">Score cible affiché en slide Objectifs</div>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">KPIs slide intro</div>
+      <label><input type="checkbox" id="cfg-kpi-actions" checked> Actions tracées</label>
+      <label><input type="checkbox" id="cfg-kpi-sites" checked> Établissements</label>
+      <label><input type="checkbox" id="cfg-kpi-days" checked> Jours analysés</label>
+      <label><input type="checkbox" id="cfg-kpi-alerts" checked> Alertes détectées</label>
+      <label><input type="checkbox" id="cfg-kpi-modules"> Modules actifs</label>
+      <label><input type="checkbox" id="cfg-kpi-p1"> Actions P1</label>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">Slides à inclure</div>
+      <label><input type="checkbox" class="slide-toggle" data-slide="intro" checked> Introduction</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="score" checked> Score groupe</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="restaurants" checked> Établissements</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="modules" checked> Modules HACCP</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="signals" checked> Signaux & alertes</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="actions" checked> Plan d'action</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="objectives" checked> Objectifs</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="roadmap" checked> Roadmap</label>
+      <label><input type="checkbox" class="slide-toggle" data-slide="conclusion" checked> Conclusion</label>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">Note pour la slide courante</div>
+      <textarea id="cfg-slide-note" rows="3" placeholder="Commentaire CSM pour cette slide (affiché dans le narrateur)…"></textarea>
+      <button class="cfg-btn" onclick="saveSlideNote()">💾 Appliquer cette note</button>
+    </div>
+    <div class="cfg-section">
+      <div class="cfg-section-title">Couleur d'accent</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div onclick="setAccent('#f97316')" style="width:28px;height:28px;border-radius:50%;background:#f97316;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+        <div onclick="setAccent('#3b82f6')" style="width:28px;height:28px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+        <div onclick="setAccent('#22c55e')" style="width:28px;height:28px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+        <div onclick="setAccent('#8b5cf6')" style="width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+        <div onclick="setAccent('#ef4444')" style="width:28px;height:28px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+        <div onclick="setAccent('#14b8a6')" style="width:28px;height:28px;border-radius:50%;background:#14b8a6;cursor:pointer;border:2px solid rgba(255,255,255,.3)"></div>
+      </div>
+    </div>
+    <button class="cfg-btn" onclick="applyBRConfig()">✓ Appliquer & Recharger</button>
+    <button class="cfg-btn secondary" onclick="resetBRConfig()">↺ Réinitialiser</button>
+    <button class="cfg-btn secondary" onclick="exportBRConfig()">📋 Copier config JSON</button>
+  </div>
+  <div id="ibr-progress-bar"><div id="ibr-progress-fill" style="width:0%"></div></div>
+    <div id="ibr-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="ibr-logo-text" style="font-size:.85rem;font-weight:800;color:#fff;opacity:.9">Octopus<span style="color:var(--or)">.</span>Intelligence</span>
+        <span id="ibr-client-badge" style="background:rgba(249,115,22,.2);border:1px solid rgba(249,115,22,.4);border-radius:5px;padding:1px 9px;font-size:.65rem;font-weight:800;letter-spacing:.1em;color:var(--or)">BUSINESS REVIEW</span>
+      </div>
+      <div id="ibr-dots"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button id="ibr-auto-btn" onclick="toggleIBRAuto()" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:7px;padding:5px 10px;font-size:.72rem;cursor:pointer">⏸</button>
+        <button id="ibr-edit-toggle" onclick="toggleIBREditMode()" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);border-radius:7px;padding:5px 10px;font-size:.72rem;cursor:pointer" title="Mode édition CSM">✏️</button>
+        <button onclick="toggleIBRConfig()" style="background:rgba(249,115,22,.2);border:1px solid rgba(249,115,22,.3);color:var(--or);border-radius:7px;padding:5px 10px;font-size:.72rem;cursor:pointer;font-weight:700">⚙️ Personnaliser</button>
+        <button id="ibr-close" onclick="closeIBR()">✕</button>
+      </div>
+    </div>
+  <div id="ibr-content"><div id="ibr-slide" class="ibr-slide"></div></div>
+  <div id="ibr-narrator"></div>
+  <div id="ibr-nav">
+    <button class="ibr-btn" id="ibr-prev" onclick="ibrNav(-1)" disabled>← Précédent</button>
+    <span id="ibr-slide-label"></span>
+    <button class="ibr-btn primary" id="ibr-next" onclick="ibrNav(1)">Suivant →</button>
+  </div>
+</div>
+
+<!-- Overlay / Loading -->
+<div class="overlay" id="ov"><div class="spin"></div><div class="spin-txt" id="ov-txt">Analyse en cours…</div></div>
+
+<!-- Modal -->
+<div class="mbg" id="mbg" onclick="closeMod(event)">
+  <div class="modal">
+    <div class="mh"><div class="mh-t" id="mod-t"></div><button class="mcl" onclick="closeMod()">✕</button></div>
+    <div id="mod-b"></div>
+  </div>
+</div>
+
+<!-- CODIR Presentation -->
+<div class="codir-bg" id="codir-bg">
+  <div class="codir-slide" id="codir-slide"></div>
+  <div style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px">
+    <button class="snav" id="codir-prev" onclick="codirNav(-1)">← Précédent</button>
+    <span class="slide-count" id="codir-count"></span>
+    <button class="snav" id="codir-next" onclick="codirNav(1)">Suivant →</button>
+  </div>
+  <button class="slide-close" onclick="closeCodir()">✕ Quitter</button>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="h-logo">Octopus<span>.</span>Intelligence</div>
+  <span class="h-tag">Directeur Qualité Virtuel</span>
+  <div class="h-sep"></div>
+  <div class="h-conn"><div class="dot" id="dot"></div><span id="conn">Connexion…</span></div>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs" id="tabs">
+  <button class="tab on"  onclick="goTab('dq')">     <span class="tab-icon">🎯</span>Synthèse DQ</button>
+  <button class="tab"     onclick="goTab('conf')">    <span class="tab-icon">📊</span>Conformité</button>
+  <button class="tab"     onclick="goTab('signals')"> <span class="tab-icon">⚡</span>Signaux Faibles</button>
+  <button class="tab"     onclick="goTab('plan')">    <span class="tab-icon">📋</span>Plan d'Action</button>
+  <button class="tab"     onclick="goTab('profile')"> <span class="tab-icon">🔬</span>Profil Site</button>
+  <button class="tab"     onclick="goTab('map')">     <span class="tab-icon">🗺</span>Carte France</button>
+  <button class="tab"     onclick="goTab('docs')">    <span class="tab-icon">📋</span>Suivi & Docs</button>
+</nav>
+
+<!-- Period bar -->
+<div class="pbar" id="pbar"></div>
+
+<!-- Content -->
+<div class="content">
+  <div class="view on" id="v-dq">      <div class="empty"><div class="empty-ic">🎯</div><h2>Synthèse Directeur Qualité</h2><p>Sélectionnez une période et lancez l'analyse.</p></div></div>
+  <div class="view"    id="v-conf">    <div class="empty"><div class="empty-ic">📊</div><h2>Tableau de Conformité HACCP</h2><p>Lancez d'abord une analyse.</p></div></div>
+  <div class="view"    id="v-signals"> <div class="empty"><div class="empty-ic">⚡</div><h2>Signaux Faibles & Anomalies</h2><p>Lancez d'abord une analyse.</p></div></div>
+  <div class="view"    id="v-plan">    <div class="empty"><div class="empty-ic">📋</div><h2>Plan d'Action Qualité</h2><p>Lancez d'abord une analyse.</p></div></div>
+  <div class="view"    id="v-profile"> <div class="empty"><div class="empty-ic">🔬</div><h2>Profil Établissement</h2><p>Lancez d'abord une analyse puis sélectionnez un site.</p></div></div>
+  <div class="view"    id="v-map">    <div class="empty"><div class="empty-ic">🗺</div><h2>Carte France</h2><p>Lancez d'abord une analyse pour voir les établissements sur la carte.</p></div></div>
+  <div class="view"    id="v-docs">   <div class="empty"><div class="empty-ic">📋</div><h2>Suivi & Documents</h2><p>Lancez d'abord une analyse.</p></div></div>
+</div>
+
+<script>
+// ═══════════════════════════════ STATE ════════════════════════════════════════
+const S = { tab:'dq', data:null, selR:null, selMod:'Températures frigos', codirIdx:0 };
+const charts = {};
+const TABS = ['dq','conf','signals','plan','profile','map','docs'];
+const MODS = ['Températures frigos','Plans de nettoyage','Réceptions','Étiquettes DLC','Étiq. imprimées','Refroidissement','Réchauffage','Gestion déchets'];
+const MCOLS = ['#f97316','#22c55e','#3b82f6','#14b8a6','#8b5cf6','#60a5fa','#f59e0b','#64748b'];
+const DOW = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const $ = id => document.getElementById(id);
+
+// ═══════════════════════════════ HELPERS ══════════════════════════════════════
+const fN = n => (n||0).toLocaleString('fr');
+const pct = (a,b) => b>0 ? Math.round(a/b*100) : 0;
+const fD = s => s ? (s.includes('-') ? s.split('-').reverse().join('/') : s) : '';
+const toApi = s => { const [y,m,d]=s.split('-'); return `${d}/${m}/${y}`; };
+
+function killChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
+function mkChart(id,type,data,opts){
+  killChart(id);
+  const c=$(id); if(!c)return null;
+  charts[id]=new Chart(c,{type,data,options:{responsive:true,maintainAspectRatio:false,...(opts||{})}});
+  return charts[id];
+}
+
+function spark(vals, w=90, h=22, col='#f97316'){
+  if(!vals||vals.length<2) return `<svg width="${w}" height="${h}"></svg>`;
+  const mx=Math.max(...vals,1);
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1))*w},${h-(v/mx)*(h-3)-1}`).join(' ');
+  const area=`0,${h} ${pts} ${w},${h}`;
+  return `<svg width="${w}" height="${h}" class="spark"><polygon points="${area}" fill="${col}" opacity=".15"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+function gauge(score, size=100){
+  const s=Math.max(0,Math.min(100,score));
+  const col = s>=90?'#22c55e':s>=75?'#14b8a6':s>=60?'#f59e0b':s>=45?'#f97316':'#ef4444';
+  const r=size*0.38, cx=size/2, cy=size*0.56;
+  const a=(s/100)*Math.PI;
+  const x1=cx-r, y1=cy;
+  const x2=cx+r*Math.cos(Math.PI-a), y2=cy-r*Math.sin(Math.PI-a);
+  const large=a>Math.PI/2?1:0;
+  return `<svg width="${size}" height="${size*0.58}" viewBox="0 0 ${size} ${size*0.58}">
+    <path d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}" fill="none" stroke="#e2e8f0" stroke-width="${size*.09}" stroke-linecap="round"/>
+    ${s>0?`<path d="M ${cx-r} ${cy} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${size*.09}" stroke-linecap="round"/>`:''}
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="${size*.22}" font-weight="900" fill="${col}" font-family="-apple-system,sans-serif">${s}</text>
+    <text x="${cx}" y="${cy+size*.1}" text-anchor="middle" font-size="${size*.1}" fill="#94a3b8" font-family="-apple-system,sans-serif">/100</text>
+  </svg>`;
+}
+
+function sevBadge(s){ return `<span class="sev-pill ${s==='critical'?'sp-c':s==='high'?'sp-h':'sp-m'}">${s==='critical'?'CRITIQUE':s==='high'?'IMPORTANT':'À SUIVRE'}</span>`; }
+
+function trendSpan(v){
+  if(v>0.12) return `<span class="up">▲ +${Math.round(v*100)}%</span>`;
+  if(v<-0.12) return `<span class="dn">▼ ${Math.round(v*100)}%</span>`;
+  return `<span class="fl">→ stable</span>`;
+}
+
+function pb(val, max, col='#f97316', w='100%'){
+  const p=max>0?Math.min(100,Math.round(val/max*100)):0;
+  return `<div class="pb" style="width:${w}"><div class="pb-f" style="width:${p}%;background:${col}"></div></div>`;
+}
+
+function levelBadge(level, label, col){
+  return `<span class="comp-level" style="background:${col}22;color:${col}">${label}</span>`;
+}
+
+function narrative(text){
+  if(!text) return '';
+  return text.split('\n').map(line => {
+    if(!line.trim()) return '<br>';
+    return '<div class="nar-line">'+line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</div>';
+  }).join('');
+}
+
+function closeMod(e){ if(!e||e.target===$('mbg'))$('mbg').classList.remove('on'); }
+function openMod(title, html){ $('mod-t').textContent=title; $('mod-b').innerHTML=html; $('mbg').classList.add('on'); }
+
+function goProfile(rid){ S.selR=rid; goTab('profile'); if(S.data)renderProfile(); }
+
+// ═══════════════════════════════ PERIOD BAR ═══════════════════════════════════
+function renderPbar(){
+  const today=new Date().toISOString().split('T')[0];
+  const m1=new Date(); m1.setDate(1);
+  $('pbar').innerHTML=`
+    <span class="pbar-lbl">Période</span>
+    <div class="dpair"><input type="date" id="ds" value="${m1.toISOString().split('T')[0]}"/><span>→</span><input type="date" id="de" value="${today}"/></div>
+    <div class="presets">
+      <button class="pre" onclick="setPre('m')">Ce mois</button>
+      <button class="pre" onclick="setPre('q')">Trimestre</button>
+      <button class="pre" onclick="setPre('30')">30j</button>
+      <button class="pre" onclick="setPre('90')">90j</button>
+    </div>
+    <button class="btn-go" id="btn-go" onclick="run()">Analyser</button>
+    <button class="btn-codir" id="btn-codir" onclick="openCodir()" style="display:none">▶ Présentation CODIR</button>`;
+}
+
+function setPre(p){
+  document.querySelectorAll('.pre').forEach(b=>b.classList.remove('on')); event.target.classList.add('on');
+  const t=new Date(), s=new Date();
+  if(p==='m'){s.setDate(1);}
+  else if(p==='q'){s.setMonth(Math.floor(t.getMonth()/3)*3);s.setDate(1);}
+  else if(p==='30'){s.setDate(t.getDate()-29);}
+  else if(p==='90'){s.setDate(t.getDate()-89);}
+  $('ds').value=s.toISOString().split('T')[0]; $('de').value=t.toISOString().split('T')[0];
+}
+
+// ═══════════════════════════════ TAB SWITCHING ════════════════════════════════
+function goTab(tab){
+  S.tab=tab;
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',TABS[i]===tab));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  $('v-'+tab).classList.add('on');
+  if(S.data && tab==='profile') renderProfile();
+  if(S.data && tab==='map') renderMap();
+  if(S.data && tab==='docs') renderDocs();
+}
+
+// ═══════════════════════════════ RUN ══════════════════════════════════════════
+async function run(){
+  const ds=$('ds')?.value, de=$('de')?.value;
+  if(!ds||!de) return;
+  $('ov').classList.add('on'); $('btn-go').disabled=true;
+  try{
+    const r=await fetch(`/api/deep?start_date=${encodeURIComponent(toApi(ds))}&end_date=${encodeURIComponent(toApi(de))}`);
+    S.data=await r.json();
+    if(S.data.error) throw new Error(S.data.error);
+    if(!S.selR && S.data.restaurants.length) S.selR=S.data.restaurants[0].id;
+    renderAll();
+    const codirBtn=$('btn-codir');
+    if(codirBtn) codirBtn.style.display='flex';
+  } catch(e){ alert('Erreur : '+e.message); }
+  finally{ $('ov').classList.remove('on'); $('btn-go').disabled=false; }
+}
+
+function renderAll(){
+  renderDQ(); renderConf(); renderSignals(); renderPlan();
+  if(S.tab==='profile') renderProfile();
+}
+
+// ═══════════════════════════════ TAB 1 — SYNTHÈSE DQ ═════════════════════════
+function renderDQ(){
+  const d=S.data; if(!d) return;
+  const {restaurantStats:RS, groupScore:GS, groupLevelData:GL, anomalies, actionPlan, moduleTotals, groupDailyTotals, period, dowAvgs, narrative:NAR} = d;
+  const rList=Object.values(RS);
+  const totalActions=rList.reduce((s,r)=>s+r.overall.total,0);
+  const critCount=anomalies.filter(a=>a.severity==='critical').length;
+  const highCount=anomalies.filter(a=>a.severity==='high').length;
+  const p1Count=actionPlan.filter(a=>a.priority==='P1').length;
+  const progCount=rList.filter(r=>r.overall.halfTrend>0.1).length;
+  const declCount=rList.filter(r=>r.overall.halfTrend<-0.2).length;
+  const dates=period.allDates;
+  const bestR=[...rList].sort((a,b)=>b.complianceScore.score-a.complianceScore.score)[0];
+  const worstR=[...rList].sort((a,b)=>a.complianceScore.score-b.complianceScore.score)[0];
+
+  $('v-dq').innerHTML=`
+    <div class="pbadge">📅 ${fD(dates[0])} → ${fD(dates[dates.length-1])} · ${period.n} jours · ${d.restaurants.length} établissements</div>
+
+    <!-- SCORE GROUPE + NARRATIVE -->
+    <div class="g2" style="align-items:start;margin-bottom:14px">
+      <div class="card" style="background:linear-gradient(135deg,#1a2e4a 0%,#243d62 100%);border:none">
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div style="text-align:center;flex-shrink:0">
+            <div style="font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(249,115,22,.9);margin-bottom:6px">Score Groupe</div>
+            ${gauge(GS,130)}
+            <div style="display:inline-block;padding:4px 14px;border-radius:8px;font-size:.78rem;font-weight:800;margin-top:4px;background:${GL.color}22;color:${GL.color};border:1px solid ${GL.color}44">${GL.label}</div>
+          </div>
+          <div style="flex:1;min-width:180px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+              <div style="text-align:center;background:rgba(255,255,255,.05);border-radius:8px;padding:10px">
+                <div style="font-size:1.5rem;font-weight:800;color:#fff">${fN(totalActions)}</div>
+                <div style="font-size:.66rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em">Actions</div>
+              </div>
+              <div style="text-align:center;background:rgba(239,68,68,.12);border-radius:8px;padding:10px;cursor:pointer" onclick="goTab('signals')" title="${critCount} critiques · ${highCount} importantes · cliquez pour le détail">
+                <div style="font-size:1.5rem;font-weight:800;color:#f87171">${anomalies.length}</div>
+                <div style="font-size:.66rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em">Alertes</div>
+                <div style="font-size:.6rem;color:rgba(239,83,80,.7);margin-top:2px">${critCount}🔴 ${highCount}🟡</div>
+              </div>
+              <div style="text-align:center;background:rgba(34,197,94,.1);border-radius:8px;padding:10px">
+                <div style="font-size:1.5rem;font-weight:800;color:#4ade80">${progCount}</div>
+                <div style="font-size:.66rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em">Progression</div>
+              </div>
+              <div style="text-align:center;background:rgba(239,68,68,.1);border-radius:8px;padding:10px">
+                <div style="font-size:1.5rem;font-weight:800;color:#f87171">${p1Count}</div>
+                <div style="font-size:.66rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em">Actions P1</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div style="background:rgba(34,197,94,.1);border-radius:6px;padding:6px 10px;font-size:.78rem">
+                <span style="color:#4ade80;font-weight:700">🌟 ${bestR?.name?.replace('ILIA - ','')}</span><span style="color:rgba(255,255,255,.4)"> meilleur score</span>
+              </div>
+              ${declCount>0?`<div style="background:rgba(239,68,68,.1);border-radius:6px;padding:6px 10px;font-size:.78rem"><span style="color:#f87171;font-weight:700">⚠ ${worstR?.name?.replace('ILIA - ','')}</span><span style="color:rgba(255,255,255,.4)"> à accompagner</span></div>`:''}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="narrative">
+        <span class="nar-title">🎯 Note de synthèse — Directeur Qualité</span>
+        ${narrate(NAR)}
+      </div>
+    </div>
+
+    <div class="sec">Scores de conformité par établissement</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:14px">
+      ${[...rList].sort((a,b)=>b.complianceScore.score-a.complianceScore.score).map(r=>{
+        const cs=r.complianceScore; const mt=r.maturity; const re=r.regulatoryExposure;
+        const rAnom=anomalies.filter(a=>a.rid==r.id);
+        const critA=rAnom.filter(a=>a.severity==='critical').length;
+        const p1=actionPlan.filter(a=>a.priority==='P1'&&a.site===r.name).length;
+        return `<div class="comp-card" onclick="goProfile(${r.id})" style="border-color:${cs.color}44" title="Cliquez pour le profil complet de ${r.name}">
+          <div class="comp-name">${r.name.replace('ILIA - ','')}</div>
+          ${gauge(cs.score,100)}
+          ${levelBadge(cs.level,cs.label,cs.color)}
+          <div class="comp-maturity">${[1,2,3,4,5].map(i=>`<div class="mat-dot ${i<=mt.level?'on':''}"></div>`).join('')}</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:4px">${mt.icon} Maturité ${mt.label}</div>
+          <div style="display:flex;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+            ${critA>0?`<span style="background:#fee2e2;color:#991b1b;padding:1px 7px;border-radius:5px;font-size:.66rem;font-weight:800">${critA} alerte${critA>1?'s':''}</span>`:''}
+            ${p1>0?`<span style="background:#fff7ed;color:#c2410c;padding:1px 7px;border-radius:5px;font-size:.66rem;font-weight:700">${p1} P1</span>`:''}
+            <span style="background:${re.color}15;color:${re.color};padding:1px 7px;border-radius:5px;font-size:.64rem;font-weight:700">${re.label}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="sec">Activité du groupe</div>
+    <div class="g2">
+      <div class="card"><div class="card-t">Activité quotidienne — tous modules</div><div class="cb h220"><canvas id="c-dq-act"></canvas></div></div>
+      <div class="card"><div class="card-t">Activité par jour de la semaine</div><div class="cb h220"><canvas id="c-dq-dow"></canvas></div></div>
+    </div>
+
+    <div class="sec">Matrice risque</div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-t">Score conformité vs Tendance · Cliquez sur un établissement</div>
+        <div class="risk-matrix">
+          <div class="rm-cell rm-q1">
+            <div class="rm-label">⬆📉 Volume élevé · Déclin</div>
+            <div class="rm-dots">${rList.filter(r=>r.complianceScore.score>=60&&r.overall.halfTrend<-0.1).map(r=>`<div class="rm-dot" onclick="goProfile(${r.id})">${d.profiles[r.profile]?.icon||'•'} ${r.name.replace('ILIA - ','')}</div>`).join('')||'<span style="color:var(--muted);font-size:.75rem">Aucun</span>'}</div>
+          </div>
+          <div class="rm-cell rm-q2">
+            <div class="rm-label">⬆📈 Score élevé · En progression</div>
+            <div class="rm-dots">${rList.filter(r=>r.complianceScore.score>=60&&r.overall.halfTrend>=-0.1).map(r=>`<div class="rm-dot" onclick="goProfile(${r.id})">${d.profiles[r.profile]?.icon||'•'} ${r.name.replace('ILIA - ','')}</div>`).join('')||'<span style="color:var(--muted);font-size:.75rem">Aucun</span>'}</div>
+          </div>
+          <div class="rm-cell rm-q3">
+            <div class="rm-label">⬇📉 Score faible · Déclin</div>
+            <div class="rm-dots">${rList.filter(r=>r.complianceScore.score<60&&r.overall.halfTrend<-0.1).map(r=>`<div class="rm-dot" onclick="goProfile(${r.id})">${d.profiles[r.profile]?.icon||'•'} ${r.name.replace('ILIA - ','')}</div>`).join('')||'<span style="color:var(--muted);font-size:.75rem">Aucun</span>'}</div>
+          </div>
+          <div class="rm-cell rm-q4">
+            <div class="rm-label">⬇📈 Score faible · Amélioration</div>
+            <div class="rm-dots">${rList.filter(r=>r.complianceScore.score<60&&r.overall.halfTrend>=-0.1).map(r=>`<div class="rm-dot" onclick="goProfile(${r.id})">${d.profiles[r.profile]?.icon||'•'} ${r.name.replace('ILIA - ','')}</div>`).join('')||'<span style="color:var(--muted);font-size:.75rem">Aucun</span>'}</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">Volume d'actions par module</div>
+        <div class="cb h260"><canvas id="c-dq-mod"></canvas></div>
+      </div>
+    </div>
+
+    <div class="sec">Top alertes</div>
+    <div class="anom-list">${anomalies.slice(0,4).map(a=>anomCard(a)).join('')}</div>`;
+
+  // Charts
+  const actColors=groupDailyTotals.map(v=>{ const mx=Math.max(...groupDailyTotals,1); return v/mx>0.7?'rgba(249,115,22,.9)':v/mx>0.3?'rgba(249,115,22,.6)':'rgba(249,115,22,.3)'; });
+  // Chart activité — clic sur un jour → modal journée
+  const actChart = mkChart('c-dq-act','bar',{
+    labels:dates.map(d=>d.slice(5)),
+    datasets:[{data:groupDailyTotals,backgroundColor:actColors,borderRadius:3,label:'Actions'}]
+  },{
+    plugins:{legend:{display:false},tooltip:{callbacks:{title:t=>`${dates[t[0].dataIndex].split('-').reverse().join('/')}`,label:t=>`${fN(t.raw)} actions groupe`}}},
+    scales:{x:{ticks:{font:{size:9},maxRotation:45,maxTicksLimit:15}},y:{beginAtZero:true,ticks:{font:{size:10}}}},
+    onClick:(e,els)=>{ if(els.length){ const d2=dates[els[0].index]; showDayGroupModal(d2,groupDailyTotals[els[0].index],S.data); }}
+  });
+
+  // Chart DoW — hover enrichi
+  mkChart('c-dq-dow','bar',{
+    labels:DOW,
+    datasets:[{data:dowAvgs,backgroundColor:dowAvgs.map((_,i)=>i===0||i===6?'rgba(239,68,68,.7)':'rgba(59,130,246,.7)'),borderRadius:4,label:'Moy. actions'}]
+  },{
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>`${t.raw} actions/jour en moyenne`}}},
+    scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,ticks:{font:{size:10}}}},
+    onClick:(e,els)=>{ if(els.length){ const dow=els[0].index; showDowModal(dow,dowAvgs[dow],S.data); }}
+  });
+
+  // Chart modules — clic → aller sur le profil filtré par module
+  mkChart('c-dq-mod','bar',{
+    labels:MODS.map(m=>m.replace('Températures ','T.').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.')),
+    datasets:[{data:MODS.map(m=>moduleTotals[m]||0),backgroundColor:MODS.map((m,i)=>moduleTotals[m]===0?'rgba(200,200,200,.4)':MCOLS[i]),borderRadius:4,label:'Total'}]
+  },{
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      title:t=>MODS[t[0].dataIndex],
+      label:t=>{
+        const mod=MODS[t[0].dataIndex];
+        const cfg=S.data?.restaurantStats ? Object.values(S.data.restaurantStats)[0]?.modules[mod] : null;
+        const metric=cfg?.metric==='pct'?`Couverture moy. ${Math.round((t.raw/(S.data?.restaurants?.length||1)/30)*100)}%`:`${fN(t.raw)} opérations total`;
+        return[metric, t.raw===0?'⚠ Aucun enregistrement — vérifier adoption':''];
+      }
+    }}},
+    scales:{x:{ticks:{font:{size:9},maxRotation:30}},y:{beginAtZero:true,ticks:{font:{size:10}}}},
+    onClick:(e,els)=>{ if(els.length){ S.selMod=MODS[els[0].index]; goTab('profile'); if(S.data)renderProfile(); }}
+  });
+}
+
+function showDayGroupModal(date, total, data){
+  const details = Object.values(data.restaurantStats).map(rs=>{
+    const idx = data.period.allDates.indexOf(date);
+    const dayTotal = idx>=0 ? rs.totalVals[idx] : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9">
+      <div style="flex:1;font-size:.83rem;font-weight:600">${rs.name.replace('ILIA - ','')}</div>
+      <div style="font-weight:700;color:${dayTotal===0?'var(--re)':'var(--or)'}">${dayTotal===0?'⚠ 0 action':fN(dayTotal)+' actions'}</div>
+    </div>`;
+  }).join('');
+  openMod(`${date.split('-').reverse().join('/')} — Activité du groupe`,
+    `<div style="font-size:.85rem;margin-bottom:12px">Total groupe : <strong style="color:var(--or)">${fN(total)} actions</strong></div>${details}`);
+}
+
+function showDowModal(dow, avg, data){
+  const label = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'][dow];
+  const isWeekend = dow===0||dow===6;
+  openMod(`Activité le ${label} — Analyse`,
+    `<div style="padding:8px 0;font-size:.85rem">
+      <div style="margin-bottom:12px">Moyenne groupe : <strong>${avg} actions/${label.toLowerCase()}</strong></div>
+      ${isWeekend && avg < 50 ? `<div style="background:#fee2e2;color:#991b1b;padding:10px 14px;border-radius:8px;font-size:.82rem;margin-bottom:12px">
+        ⚠ <strong>Alerte week-end :</strong> La réglementation HACCP exige une traçabilité 7j/7. Une activité faible le ${label.toLowerCase()} expose l'établissement lors d'un contrôle sanitaire.
+      </div>` : ''}
+      <div style="font-size:.78rem;color:var(--muted)">Cliquez sur un établissement dans Profil Site pour voir son calendrier détaillé.</div>
+    </div>`);
+}
+
+// ═══════════════════════════════ TAB 2 — CONFORMITÉ ══════════════════════════
+function renderConf(){
+  const d=S.data; if(!d) return;
+  const {restaurantStats:RS, anomalies} = d;
+  const rList=[...Object.values(RS)].sort((a,b)=>b.complianceScore.score-a.complianceScore.score);
+
+  $('v-conf').innerHTML=`
+    <div class="sec">Scores de conformité HACCP — détail</div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Établissement</th><th>Score</th><th>Jauge</th><th>Niveau</th>
+          <th>Maturité</th><th>Exposition régl.</th><th>Profil</th><th>Facteurs clés</th>
+        </tr></thead>
+        <tbody>${rList.map((r,i)=>{
+          const cs=r.complianceScore, mt=r.maturity, re=r.regulatoryExposure, pr=d.profiles[r.profile]||{};
+          const medals=['🥇','🥈','🥉'];
+          return `<tr class="cr" onclick="goProfile(${r.id})">
+            <td><span class="rank-medal">${medals[i]||i+1}</span></td>
+            <td><strong>${r.name}</strong></td>
+            <td><span style="font-size:1.3rem;font-weight:900;color:${cs.color}">${cs.score}</span><span style="color:var(--muted);font-size:.75rem">/100</span></td>
+            <td style="min-width:100px">${pb(cs.score,100,cs.color,'100px')}</td>
+            <td>${levelBadge(cs.level,cs.label,cs.color)}</td>
+            <td style="text-align:center">
+              <span style="color:${mt.color};font-weight:700">${mt.icon}</span>
+              <span style="font-size:.75rem;color:var(--muted)"> ${mt.label}</span>
+            </td>
+            <td><span class="badge" style="background:${re.color}18;color:${re.color}">${re.label}</span></td>
+            <td><span style="color:${pr.color||'#aaa'};font-size:.85rem">${pr.icon||'?'} ${pr.label||r.profile}</span></td>
+            <td style="max-width:200px">
+              ${cs.factors.filter(f=>f.severity!=='bonus').slice(0,2).map(f=>`<div style="font-size:.7rem;color:var(--muted)">${f.icon} ${f.label}</div>`).join('')}
+            </td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sec">Décomposition du score — facteurs par établissement</div>
+    ${rList.map(r=>{
+      const cs=r.complianceScore;
+      const neg=cs.factors.filter(f=>f.impact<0);
+      const pos=cs.factors.filter(f=>f.impact>0);
+      return `<div class="card" style="margin-bottom:12px;cursor:pointer;border-left:4px solid ${cs.color}" onclick="goProfile(${r.id})">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="flex-shrink:0">${gauge(cs.score,80)}</div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:8px">${r.name} <span class="comp-level" style="background:${cs.color}22;color:${cs.color}">${cs.label}</span></div>
+            ${neg.map(f=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.78rem"><span>${f.icon}</span><span style="color:var(--txt);flex:1">${f.label}</span><span style="color:var(--re);font-weight:700;font-size:.75rem;flex-shrink:0">${f.impact} pts</span></div>`).join('')}
+            ${pos.map(f=>`<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.78rem"><span>${f.icon}</span><span style="color:var(--txt);flex:1">${f.label}</span><span style="color:var(--gr);font-weight:700;font-size:.75rem;flex-shrink:0">+${f.impact} pts</span></div>`).join('')}
+          </div>
+          <div style="flex-shrink:0;text-align:center">
+            <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">Exposition régl.</div>
+            <span class="badge" style="background:${r.regulatoryExposure.color}18;color:${r.regulatoryExposure.color};font-size:.82rem">${r.regulatoryExposure.label} · ${r.regulatoryExposure.risk}/100</span>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:8px">Maturité</div>
+            <span style="color:${r.maturity.color};font-weight:700">${r.maturity.icon} Niveau ${r.maturity.level} — ${r.maturity.label}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+
+    <div class="sec">Modèle de maturité qualité — comparaison groupe</div>
+    <div class="card">
+      <div class="card-t">Niveau de maturité par établissement (échelle 1–5)</div>
+      <div class="cb h220"><canvas id="c-conf-mat"></canvas></div>
+    </div>`;
+
+  mkChart('c-conf-mat','bar',{
+    labels:rList.map(r=>r.name.replace('ILIA - ','')),
+    datasets:[{label:'Niveau de maturité',data:rList.map(r=>r.maturity.level),backgroundColor:rList.map(r=>r.maturity.color),borderRadius:6}]
+  },{plugins:{legend:{display:false}},scales:{y:{min:0,max:5,ticks:{stepSize:1,font:{size:10},callback:v=>['','①Initiating','②Démarrage','③Défini','④Maîtrisé','⑤Excellence'][v]||v}},x:{ticks:{font:{size:11}}}}});
+}
+
+// ═══════════════════════════════ TAB 3 — SIGNAUX ═════════════════════════════
+function renderSignals(){
+  const d=S.data; if(!d) return;
+  const {anomalies, restaurantStats:RS} = d;
+  const rList=Object.values(RS);
+  const crit=anomalies.filter(a=>a.severity==='critical');
+  const high=anomalies.filter(a=>a.severity==='high');
+  const med=anomalies.filter(a=>a.severity==='medium');
+  const atRisk=rList.filter(r=>r.regulatoryExposure.risk>=40).sort((a,b)=>b.regulatoryExposure.risk-a.regulatoryExposure.risk);
+
+  $('v-signals').innerHTML=`
+    <div class="kpis">
+      <div class="kpi re"><div class="kpi-accent"></div><div class="kpi-l">🔴 Critiques</div><div class="kpi-v">${crit.length}</div><div class="kpi-s">Intervention immédiate</div></div>
+      <div class="kpi am"><div class="kpi-accent"></div><div class="kpi-l">🟡 Importantes</div><div class="kpi-v" style="color:var(--am)">${high.length}</div><div class="kpi-s">Traitement urgent</div></div>
+      <div class="kpi bl"><div class="kpi-accent"></div><div class="kpi-l">🔵 À surveiller</div><div class="kpi-v">${med.length}</div><div class="kpi-s">Points d'attention</div></div>
+      <div class="kpi re"><div class="kpi-accent"></div><div class="kpi-l">⚠ Exposition régl.</div><div class="kpi-v">${atRisk.length}</div><div class="kpi-s">Sites à risque élevé+</div></div>
+    </div>
+
+    ${crit.length?`<div class="sec">🔴 Anomalies critiques — action immédiate</div><div class="anom-list">${crit.map(a=>anomCard(a)).join('')}</div>`:''}
+    ${high.length?`<div class="sec">🟡 Anomalies importantes</div><div class="anom-list">${high.map(a=>anomCard(a)).join('')}</div>`:''}
+    ${med.length?`<div class="sec">🔵 Points d'attention</div><div class="anom-list">${med.map(a=>anomCard(a)).join('')}</div>`:''}
+
+    <div class="sec">Exposition réglementaire — risque de contrôle sanitaire</div>
+    ${atRisk.length?`<div class="card">
+      <div class="card-t">Établissements exposés à un risque de contrôle sanitaire défavorable</div>
+      <table><thead><tr><th>Établissement</th><th>Exposition</th><th>Score</th><th>Facteurs de risque</th><th>Profil</th><th></th></tr></thead>
+      <tbody>${atRisk.map(r=>`
+        <tr class="cr" onclick="goProfile(${r.id})">
+          <td><strong>${r.name}</strong></td>
+          <td><span class="badge" style="background:${r.regulatoryExposure.color}18;color:${r.regulatoryExposure.color};font-size:.8rem">${r.regulatoryExposure.label}</span></td>
+          <td style="font-weight:800;color:${r.regulatoryExposure.color}">${r.regulatoryExposure.risk}/100</td>
+          <td style="font-size:.77rem;color:var(--muted)">${r.missingCritical.length?'Modules: '+r.missingCritical.join(', ')+' · ':''} Couv. ${Math.round(r.overall.coverage*100)}%</td>
+          <td><span style="color:${(d.profiles[r.profile]||{}).color||'#aaa'}">${(d.profiles[r.profile]||{}).icon||'?'} ${(d.profiles[r.profile]||{}).label||r.profile}</span></td>
+          <td><button class="btn-go" style="padding:3px 10px;font-size:.72rem" onclick="event.stopPropagation();goProfile(${r.id})">→</button></td>
+        </tr>`).join('')}
+      </tbody></table>
+    </div>`:`<div class="card" style="text-align:center;padding:28px;color:var(--muted)">✅ Aucun établissement en exposition réglementaire élevée</div>`}
+
+    <div class="sec">Types d'anomalies par établissement</div>
+    <div class="card"><div class="card-t">Heatmap des signaux détectés</div><div class="cb h220"><canvas id="c-sig-heat"></canvas></div></div>`;
+
+  const rNames=Object.values(RS).map(r=>r.name.replace('ILIA - ',''));
+  const rIds=Object.values(RS).map(r=>r.id);
+  const types=['gap','silence','cramming','decline','weekend','group_dip'];
+  const tLabels=['Interruption','Silence','Rétroactif','Baisse','Week-end','Synchronisé'];
+  mkChart('c-sig-heat','bar',{
+    labels:rNames,
+    datasets:types.map((t,i)=>({label:tLabels[i],data:rIds.map(rid=>anomalies.filter(a=>a.type===t&&(a.rid==rid||a.rid===null)).length),backgroundColor:['#ef4444','#7c3aed','#f59e0b','#f97316','#3b82f6','#64748b'][i]+'bb',borderRadius:3}))
+  },{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1,font:{size:10}}}}});
+}
+
+// ═══════════════════════════════ TAB 4 — PLAN D'ACTION ═══════════════════════
+function renderPlan(){
+  const d=S.data; if(!d) return;
+  const {actionPlan:AP} = d;
+  const p1=AP.filter(a=>a.priority==='P1');
+  const p2=AP.filter(a=>a.priority==='P2');
+  const p3=AP.filter(a=>a.priority==='P3');
+  const totalImpact=AP.reduce((s,a)=>{const m=parseInt((a.scoreImpact||'0').replace(/\D/g,''));return s+(isNaN(m)?0:m);},0);
+
+  $('v-plan').innerHTML=`
+    <div class="kpis" style="margin-bottom:14px">
+      <div class="kpi re"><div class="kpi-accent"></div><div class="kpi-l">P1 — Cette semaine</div><div class="kpi-v">${p1.length}</div><div class="kpi-s">Actions urgentes</div></div>
+      <div class="kpi am"><div class="kpi-accent"></div><div class="kpi-l">P2 — Ce mois</div><div class="kpi-v" style="color:var(--am)">${p2.length}</div><div class="kpi-s">Actions importantes</div></div>
+      <div class="kpi bl"><div class="kpi-accent"></div><div class="kpi-l">P3 — Prochain mois</div><div class="kpi-v">${p3.length}</div><div class="kpi-s">Actions planifiées</div></div>
+      <div class="kpi gr"><div class="kpi-accent"></div><div class="kpi-l">Impact potentiel</div><div class="kpi-v" style="color:var(--gr)">+${totalImpact}</div><div class="kpi-s">points score groupe</div></div>
+    </div>
+
+    ${p1.length?`<div class="sec">🔴 P1 — Actions immédiates (cette semaine)</div>${actionCards(p1,d)}` : ''}
+    ${p2.length?`<div class="sec">🟡 P2 — Actions court terme (ce mois)</div>${actionCards(p2,d)}` : ''}
+    ${p3.length?`<div class="sec">🔵 P3 — Actions moyen terme (prochain mois)</div>${actionCards(p3,d)}` : ''}
+
+    <div class="sec">Vision globale du plan</div>
+    <div class="card">
+      <div class="card-t">Impact estimé sur le score de conformité si toutes les actions P1 sont réalisées</div>
+      <div class="cb h220"><canvas id="c-plan-impact"></canvas></div>
+    </div>`;
+
+  // Impact chart
+  const rNames=[...new Set(AP.filter(a=>a.site!=='Groupe').map(a=>a.site.replace('ILIA - ','')))];
+  const currentScores=rNames.map(n=>{const r=Object.values(d.restaurantStats).find(x=>x.name.includes(n)); return r?r.complianceScore.score:0;});
+  const projectedScores=rNames.map((n,i)=>{
+    const impact=AP.filter(a=>a.priority==='P1'&&a.site.includes(n)).reduce((s,a)=>{const m=parseInt((a.scoreImpact||'0').replace(/\D/g,''));return s+(isNaN(m)?0:m);},0);
+    return Math.min(100,currentScores[i]+impact);
+  });
+  mkChart('c-plan-impact','bar',{
+    labels:rNames,
+    datasets:[
+      {label:'Score actuel',data:currentScores,backgroundColor:'rgba(148,163,184,.5)',borderRadius:4},
+      {label:'Après actions P1',data:projectedScores,backgroundColor:'rgba(34,197,94,.6)',borderRadius:4}
+    ]
+  },{plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:10}}},scales:{y:{min:0,max:100,ticks:{font:{size:10}}},x:{ticks:{font:{size:11}}}}});
+}
+
+function actionCards(actions, d){
+  return `<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:6px">
+    ${actions.map(a=>{
+      const pClass=a.priority==='P1'?'p1':a.priority==='P2'?'p2':'p3';
+      const rData=a.site!=='Groupe'?Object.values(d.restaurantStats).find(r=>r.name===a.site):null;
+      return `<div class="card" style="border-left:4px solid ${a.priority==='P1'?'#ef4444':a.priority==='P2'?'#f59e0b':'#3b82f6'}">
+        <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:240px">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+              <span class="${pClass}-pill">${a.priority}</span>
+              <span style="font-size:.72rem;background:var(--bg);padding:1px 8px;border-radius:5px;color:var(--muted)">${a.type==='activation'?'🔌 Activation':a.type==='training'?'📚 Formation':a.type==='process'?'⚙️ Process':'📅 Couverture'}</span>
+              <strong style="font-size:.88rem">${a.title}</strong>
+            </div>
+            <div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">${a.description}</div>
+            <div style="font-size:.75rem;display:flex;gap:10px;flex-wrap:wrap">
+              <span>📍 <strong>${a.site}</strong></span>
+              ${a.module?`<span>📦 ${a.module}</span>`:''}
+              <span>⏱ ${a.deadline}</span>
+              <span>💪 Effort : ${a.effort}</span>
+            </div>
+          </div>
+          <div style="text-align:center;flex-shrink:0">
+            ${rData?gauge(rData.complianceScore.score,70):''}
+            <span class="score-impact">${a.scoreImpact}</span>
+          </div>
+        </div>
+        <div style="margin-top:10px;padding:8px 10px;background:#f8fafc;border-radius:6px;font-size:.76rem;color:var(--muted)">
+          🎯 <strong>Impact :</strong> ${a.impact}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════ TAB 5 — PROFIL SITE ════════════════════════
+function renderProfile(){
+  const d=S.data; if(!d) return;
+  const {restaurantStats:RS, anomalies, period, profiles} = d;
+  const rList=Object.values(RS);
+  if(!S.selR) S.selR=rList[0]?.id;
+  const r=RS[S.selR]; if(!r) return;
+  const pr=profiles[r.profile]||{label:r.profile,icon:'?',color:'#aaa',desc:''};
+  const rAnom=anomalies.filter(a=>a.rid==r.id||a.rid===null);
+  const dates=period.allDates;
+  const groupAvg={};
+  for(const mod of MODS) groupAvg[mod]=rList.reduce((s,rx)=>s+rx.modules[mod].total,0)/Math.max(rList.length,1);
+  const selMod=S.selMod;
+
+  // Heatmap
+  const modVals=r.modules[selMod].values;
+  const maxMV=Math.max(...modVals,1);
+  function hvLevel(v){ return v===0?0:v<=maxMV*.25?1:v<=maxMV*.5?2:v<=maxMV*.75?3:4; }
+  const fDow=(dates[0]).split('-');
+  const firstDow=new Date(`${fDow[0]}-${fDow[1]}-${fDow[2]}`).getDay();
+  const mFirst=(firstDow+6)%7;
+  let hmCells='';
+  for(let i=0;i<mFirst;i++) hmCells+=`<div class="hm-empty"></div>`;
+  dates.forEach((dt,i)=>{ const lv=hvLevel(modVals[i]); hmCells+=`<div class="hm-cell lv${lv}" title="${fD(dt)}: ${modVals[i]} actions" onclick="openDayModal('${dt}',${modVals[i]},'${r.name}','${selMod}')"></div>`; });
+  const tot=mFirst+dates.length; const rem=tot%7; if(rem) for(let i=0;i<7-rem;i++) hmCells+=`<div class="hm-empty"></div>`;
+
+  $('v-profile').innerHTML=`
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+      <select onchange="S.selR=parseInt(this.value);renderProfile()" style="border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:.88rem;font-weight:600;outline:none">
+        ${rList.sort((a,b)=>b.complianceScore.score-a.complianceScore.score).map(rx=>`<option value="${rx.id}" ${rx.id===r.id?'selected':''}>${rx.name} — ${rx.complianceScore.score}/100</option>`).join('')}
+      </select>
+    </div>
+
+    <!-- Hero card -->
+    <div class="card" style="background:linear-gradient(135deg,${pr.color}12 0%,transparent 60%);border-left:5px solid ${pr.color};margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="font-size:2.4rem">${pr.icon}</div>
+        <div style="flex:1">
+          <div style="font-size:1.2rem;font-weight:800">${r.name}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <span style="background:${pr.color}22;color:${pr.color};padding:3px 10px;border-radius:8px;font-size:.77rem;font-weight:700">${pr.icon} ${pr.label}</span>
+            <span style="font-size:.78rem;color:var(--muted)">${pr.desc}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+          <div style="text-align:center">${gauge(r.complianceScore.score,90)}<div style="font-size:.65rem;color:var(--muted);margin-top:2px">CONFORMITÉ</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Maturité</span><br><span style="color:${r.maturity.color};font-weight:700">${r.maturity.icon} Niv. ${r.maturity.level} — ${r.maturity.label}</span></div>
+            <div><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Exposition régl.</span><br><span class="badge" style="background:${r.regulatoryExposure.color}18;color:${r.regulatoryExposure.color}">${r.regulatoryExposure.label}</span></div>
+            <div><span style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Tendance</span><br>${trendSpan(r.overall.halfTrend)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card"><div class="card-t">Profil radar — vs moyenne groupe</div><div class="cb h260"><canvas id="c-pr-radar"></canvas></div></div>
+      <div class="card"><div class="card-t">Répartition des actions</div><div class="cb h260"><canvas id="c-pr-donut"></canvas></div></div>
+    </div>
+
+    <div class="sec">Module ${selMod} — Heatmap calendaire</div>
+    <div class="card">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <select onchange="S.selMod=this.value;renderProfile()" style="border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:.82rem;outline:none">
+          ${MODS.map(m=>{ const ms=r.modules[m]; if(!ms) return ''; const dv=ms.metric==='pct'?(ms.displayValue+'% '+ms.displayUnit):(fN(ms.displayValue)+' '+ms.displayUnit); return `<option value="${m}" ${m===selMod?'selected':''}>${ms.icon||''} ${m} — ${dv}</option>`; }).join('')}
+        </select>
+        <span style="font-size:.8rem;color:var(--muted)">Cliquez sur un jour pour le détail</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:2px;padding-top:1px">
+          ${['L','M','M','J','V','S','D'].map(l=>`<div style="height:13px;font-size:.62rem;color:var(--muted);line-height:13px">${l}</div>`).join('')}
+        </div>
+        <div class="hm-wrap"><div class="hm-grid">${hmCells}</div></div>
+      </div>
+      <div style="display:flex;gap:4px;align-items:center;margin-top:8px;font-size:.7rem;color:var(--muted)">
+        Moins <div style="width:11px;height:11px;border-radius:2px;background:#f1f5f9;border:1px solid #e2e8f0"></div><div style="width:11px;height:11px;border-radius:2px;background:#fbbf24;opacity:.5"></div><div style="width:11px;height:11px;border-radius:2px;background:#fbbf24"></div><div style="width:11px;height:11px;border-radius:2px;background:var(--or)"></div><div style="width:11px;height:11px;border-radius:2px;background:var(--ord)"></div> Plus
+      </div>
+    </div>
+
+    <div class="sec">Détail module par module — cliquez pour heatmap</div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Module</th><th>Critique</th><th>Valeur clé</th><th>vs Groupe</th><th>Couverture</th><th>Tendance</th><th>Interruption max</th><th>Sparkline</th><th>Statut</th></tr></thead>
+        <tbody>${MODS.map(mod=>{
+          const ms=r.modules[mod]; if(!ms) return '';
+          const isCrit=['Températures frigos','Plans de nettoyage','Réceptions','Refroidissement'].includes(mod);
+          const avg=groupAvg[mod]; const vg=avg>0?(ms.total-avg)/avg:ms.total>0?1:0;
+          const isPct=ms.metric==='pct';
+          const dispVal=isPct ? (ms.displayValue+'%') : fN(ms.displayValue);
+          const dispUnit=ms.displayUnit||'';
+          const dispCol=isPct ? (ms.displayValue>=85?'var(--gr)':ms.displayValue>=60?'var(--am)':'var(--re)') : 'var(--or)';
+          return `<tr class="cr" onclick="S.selMod='${mod}';renderProfile()">
+            <td><strong>${ms.icon||''} ${mod}</strong></td>
+            <td>${isCrit?'<span style="color:var(--re);font-size:.72rem;font-weight:700">●</span>':''}</td>
+            <td class="tr"><strong style="color:${dispCol}">${dispVal}</strong> <span style="font-size:.7rem;color:var(--muted)">${dispUnit}</span></td>
+            <td style="color:${vg>=0?'var(--gr)':'var(--re)'};font-weight:700">${vg>=0?'+':''}${Math.round(vg*100)}%</td>
+            <td>${Math.round(ms.coverage*100)}% ${pb(ms.coverage,1,ms.coverage>.65?'var(--gr)':ms.coverage>.35?'var(--am)':'var(--re)','70px')}</td>
+            <td>${trendSpan(ms.halfTrend)}</td>
+            <td style="font-weight:700;color:${ms.maxGap>=3?'var(--re)':'var(--gr)'}">${ms.maxGap}j</td>
+            <td>${spark(ms.values,90,20,ms.total>0?'var(--or)':'#ccc')}</td>
+            <td>${ms.total>0?`<span class="badge b-gr">✓ Actif</span>`:isCrit?`<span class="badge b-re">⚠ Critique</span>`:`<span class="badge b-navy">Inactif</span>`}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    ${rAnom.length?`<div class="sec">Anomalies (${rAnom.length})</div><div class="anom-list">${rAnom.map(a=>anomCard(a)).join('')}</div>`:''}`;
+
+  // Radar
+  const radarMax=MODS.map(m=>Math.max(...rList.map(rx=>rx.modules[m].total),1));
+  mkChart('c-pr-radar','radar',{
+    labels:MODS.map(m=>m.replace('Températures ','T.').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.')),
+    datasets:[
+      {label:r.name.replace('ILIA - ',''),data:MODS.map((m,i)=>r.modules[m].total/radarMax[i]*100),backgroundColor:pr.color+'22',borderColor:pr.color,borderWidth:2,pointBackgroundColor:pr.color},
+      {label:'Moy. groupe',data:MODS.map((m,i)=>groupAvg[m]/radarMax[i]*100),backgroundColor:'rgba(100,116,139,.08)',borderColor:'#94a3b8',borderWidth:1,pointRadius:3,pointBackgroundColor:'#94a3b8'}
+    ]
+  },{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:8}},pointLabels:{font:{size:9}}}}});
+
+  // Donut
+  const activeMods=MODS.filter(m=>r.modules[m].total>0);
+  mkChart('c-pr-donut','doughnut',{
+    labels:activeMods,
+    datasets:[{data:activeMods.map(m=>r.modules[m].total),backgroundColor:activeMods.map(m=>MCOLS[MODS.indexOf(m)]),borderWidth:0}]
+  },{cutout:'58%',plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:11}}}});
+}
+
+// ═══════════════════════════════ ANOMALY CARD ═════════════════════════════════
+function anomCard(a){
+  const cls=a.severity;
+  return `<div class="anom ${cls}" onclick="${a.rid?'goProfile('+a.rid+')':''}">
+    <div class="anom-ic">${a.icon}</div>
+    <div style="flex:1">
+      <div class="anom-meta">
+        ${sevBadge(a.severity)}
+        <span style="font-size:.72rem;color:var(--muted);font-weight:600">${a.restaurant}</span>
+        ${a.module?`<span class="tag">${a.module}</span>`:''}
+        <span style="margin-left:auto;font-size:.72rem;font-weight:800;color:var(--or)">${a.metric}</span>
+      </div>
+      <div class="anom-t">${a.title}</div>
+      <div class="anom-d">${a.desc}</div>
+      ${a.action?`<div class="anom-action">💡 ${a.action}</div>`:''}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════ NARRATIVE ════════════════════════════════════
+function narrate(text){
+  if(!text) return '';
+  return text.split('\n').map(line=>{
+    if(!line.trim()) return '<br>';
+    return '<div class="nar-line">'+line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════ DAY MODAL ════════════════════════════════════
+function openDayModal(date, count, restaurant, module){
+  const dateStr=new Date(date).toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  openMod(`${restaurant} · ${module}`,`
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:3.5rem;font-weight:900;color:${count>0?'var(--or)':'var(--muted)'}">${count}</div>
+      <div style="font-size:.9rem;color:var(--muted);margin-top:4px">action${count!==1?'s':''} enregistrée${count!==1?'s':''}</div>
+      <div style="margin-top:8px;font-size:.82rem;color:var(--muted)">${dateStr}</div>
+      ${count===0?`<div style="margin-top:16px;background:var(--rel);color:var(--re);padding:12px 16px;border-radius:8px;font-size:.82rem;text-align:left"><strong>⚠ Aucune activité enregistrée ce jour.</strong><br>En cas de contrôle sanitaire, l'absence de traçabilité sur un module critique peut entraîner une mise en cause.</div>`:''}
+    </div>`);
+}
+
+// ═══════════════════════════════ CODIR MODE ═══════════════════════════════════
+let codirSlides=[];
+
+function openCodir(){
+  const d=S.data; if(!d) return;
+  const {restaurantStats:RS, groupScore:GS, groupLevelData:GL, anomalies, actionPlan:AP, period} = d;
+  const rList=[...Object.values(RS)].sort((a,b)=>b.complianceScore.score-a.complianceScore.score);
+  const dates=period.allDates;
+  const totalActions=rList.reduce((s,r)=>s+r.overall.total,0);
+  const topRisks=[
+    ...anomalies.filter(a=>a.severity==='critical'),
+    ...anomalies.filter(a=>a.severity==='high'),
+    ...anomalies.filter(a=>a.severity==='medium'),
+  ].slice(0,5);
+  const p1=AP.filter(a=>a.priority==='P1').slice(0,5);
+
+  codirSlides=[
+    // Slide 1 — Couverture
+    `<div class="sl-eyebrow">Rapport Qualité — Groupe</div>
+     <div class="sl-title">Revue Qualité<br><span style="color:var(--or)">HACCP & Conformité</span></div>
+     <div class="sl-sub">${fD(dates[0])} → ${fD(dates[dates.length-1])} · ${period.n} jours · ${d.restaurants.length} établissements</div>
+     <div style="margin-top:30px;display:flex;gap:40px;justify-content:center;flex-wrap:wrap">
+       <div style="text-align:center"><div style="font-size:2.8rem;font-weight:900;color:#fff">${fN(totalActions)}</div><div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em">Actions tracées</div></div>
+       <div style="text-align:center"><div style="font-size:2.8rem;font-weight:900;color:${anomalies.filter(a=>a.severity==='critical').length>0?'#f87171':'#4ade80'}">${anomalies.length}</div><div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em">Alertes détectées</div></div>
+       <div style="text-align:center"><div style="font-size:2.8rem;font-weight:900;color:#60a5fa">${AP.length}</div><div style="font-size:.8rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em">Actions à mener</div></div>
+     </div>`,
+
+    // Slide 2 — Score global
+    `<div class="sl-eyebrow">Score de Conformité Groupe</div>
+     <div class="sl-score" style="color:${GL.color}">${GS}</div>
+     <div style="font-size:.9rem;color:rgba(255,255,255,.5);margin-bottom:8px">/ 100 points</div>
+     <div class="sl-level" style="background:${GL.color}22;color:${GL.color};border:1px solid ${GL.color}44">${GL.label}</div>
+     <div style="margin-top:30px;max-width:600px">
+       <div style="display:flex;gap:3px;margin-bottom:8px">
+         ${[...Array(10)].map((_,i)=>`<div style="flex:1;height:12px;border-radius:2px;background:${i<Math.round(GS/10)?GL.color:GL.color+'33'}"></div>`).join('')}
+       </div>
+       <div style="display:flex;justify-content:space-between;font-size:.72rem;color:rgba(255,255,255,.3)"><span>0 — Critique</span><span>50 — À risque</span><span>75 — Conforme</span><span>100 — Champion</span></div>
+     </div>`,
+
+    // Slide 3 — État des sites
+    `<div class="sl-eyebrow">État des établissements</div>
+     <div class="sl-title" style="font-size:1.8rem;margin-bottom:20px">Tableau de bord des sites</div>
+     <table class="sl-table">
+       <thead><tr><th>#</th><th>Établissement</th><th>Score</th><th>Niveau</th><th>Maturité</th><th>Exposition</th></tr></thead>
+       <tbody>${rList.map((r,i)=>`
+         <tr>
+           <td style="color:rgba(255,255,255,.4)">${['🥇','🥈','🥉'][i]||i+1}</td>
+           <td>${r.name}</td>
+           <td class="sc" style="color:${r.complianceScore.color}">${r.complianceScore.score}</td>
+           <td><span style="background:${r.complianceScore.color}22;color:${r.complianceScore.color};padding:2px 10px;border-radius:6px;font-size:.78rem;font-weight:700">${r.complianceScore.label}</span></td>
+           <td style="color:${r.maturity.color}">${r.maturity.icon} ${r.maturity.label}</td>
+           <td><span style="color:${r.regulatoryExposure.color}">${r.regulatoryExposure.label}</span></td>
+         </tr>`).join('')}
+       </tbody>
+     </table>`,
+
+    // Slide 4 — Risques
+    `<div class="sl-eyebrow">Points de vigilance</div>
+     <div class="sl-title" style="font-size:2rem;margin-bottom:20px">Signaux détectés</div>
+     <div class="sl-risks">
+       ${topRisks.length?topRisks.slice(0,5).map(a=>`
+         <div class="sl-risk-item">
+           <div class="sl-risk-ic">${a.icon}</div>
+           <div><div class="sl-risk-t">${a.title}</div><div class="sl-risk-d">${a.desc}</div></div>
+         </div>`).join(''):`<div style="color:rgba(255,255,255,.5);text-align:center;padding:30px">✅ Aucun signal critique détecté</div>`}
+     </div>`,
+
+    // Slide 5 — Plan d'action P1
+    `<div class="sl-eyebrow">Plan d'action prioritaire</div>
+     <div class="sl-title" style="font-size:2rem;margin-bottom:20px">Actions P1 — Cette semaine</div>
+     <div class="sl-actions">
+       ${p1.length?p1.map(a=>`
+         <div class="sl-action-item">
+           <span class="sl-p p1">P1</span>
+           <div style="flex:1"><div style="color:#fff;font-weight:700;font-size:.92rem">${a.title}</div><div style="color:rgba(255,255,255,.5);font-size:.8rem;margin-top:2px">${a.site} · ${a.deadline} · Impact : ${a.scoreImpact}</div></div>
+         </div>`).join(''):`<div style="color:rgba(255,255,255,.4);text-align:center;padding:30px">✅ Aucune action P1 requise cette semaine</div>`}
+     </div>`,
+
+    // Slide 6 — Recommandations
+    `<div class="sl-eyebrow">Recommandations DQ</div>
+     <div class="sl-title" style="font-size:2rem;margin-bottom:24px">Prochaines étapes</div>
+     <div class="sl-reco">
+       ${generateRecommendations(d).map((r,i)=>`
+         <div class="sl-reco-item">
+           <div class="sl-num">${i+1}</div>
+           <div><div class="sl-reco-t">${r.title}</div><div class="sl-reco-d">${r.desc}</div></div>
+         </div>`).join('')}
+     </div>`,
+  ];
+
+  S.codirIdx=0;
+  renderCodirSlide();
+  $('codir-bg').classList.add('on');
+}
+
+function generateRecommendations(d){
+  const recs=[];
+  const rList=Object.values(d.restaurantStats);
+  const p1Count=d.actionPlan.filter(a=>a.priority==='P1').length;
+  const missModules=[...new Set(rList.flatMap(r=>r.missingCritical))];
+  if(missModules.length>0) recs.push({title:`Activer "${missModules[0]}" sur ${rList.filter(r=>r.missingCritical.includes(missModules[0])).length} établissement(s)`,desc:'Module critique absent — risque réglementaire direct. Action à mener cette semaine.'});
+  const declining=rList.filter(r=>r.overall.halfTrend<-0.2);
+  if(declining.length>0) recs.push({title:`Visites terrain prioritaires : ${declining.map(r=>r.name.replace('ILIA - ','')).join(', ')}`,desc:'Tendance baissière détectée. Analyser les causes et relancer la dynamique qualité.'});
+  recs.push({title:`Objectif : Score groupe ${Math.min(100,d.groupScore+10)}/100 sur la prochaine période`,desc:`+${Math.min(100,d.groupScore+10)-d.groupScore} points via l'activation des modules manquants et la correction des irrégularités.`});
+  if(p1Count>0) recs.push({title:`Traiter les ${p1Count} action${p1Count>1?'s':''} P1 avant fin de semaine`,desc:'Ces actions représentent l\'impact le plus fort sur le score de conformité à court terme.'});
+  return recs.slice(0,4);
+}
+
+function renderCodirSlide(){
+  const slide=$('codir-slide'); if(!slide) return;
+  slide.innerHTML=codirSlides[S.codirIdx]||'';
+  $('codir-count').textContent=`${S.codirIdx+1} / ${codirSlides.length}`;
+  $('codir-prev').disabled=S.codirIdx===0;
+  $('codir-next').disabled=S.codirIdx===codirSlides.length-1;
+}
+
+function codirNav(dir){
+  S.codirIdx=Math.max(0,Math.min(codirSlides.length-1,S.codirIdx+dir));
+  renderCodirSlide();
+}
+
+function closeCodir(){ $('codir-bg').classList.remove('on'); }
+
+document.addEventListener('keydown', e=>{
+  if($('codir-bg').classList.contains('on')){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') codirNav(1);
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp') codirNav(-1);
+    else if(e.key==='Escape') closeCodir();
+  } else if(e.key==='Escape') { closeMod(); }
+});
+
+// ═══════════════════════════════ CARTE FRANCE ════════════════════════════════
+let mapInstance = null;
+let mapMarkers = [];
+
+const SCORE_COLOR = s => s>=75?'#22c55e':s>=60?'#f59e0b':s>=45?'#f97316':'#ef4444';
+const SCORE_LABEL = s => s>=75?'Conforme':s>=60?'Vigilance':s>=45?'À risque':'Critique';
+const SCORE_RADIUS = s => s>=75?10:s>=60?13:s>=45?16:19;
+
+async function renderMap(){
+  if(!S.data) return;
+  const v=$('v-map'); if(!v) return;
+
+  // Show skeleton
+  v.innerHTML=`
+    <div class="pbadge" style="margin:0 0 12px">🗺 Géolocalisation des établissements en cours…</div>
+    <div style="height:580px;background:#e8ecf0;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem">
+      <div style="text-align:center"><div class="spin" style="margin:0 auto 12px"></div>Geocodage des adresses via OpenStreetMap…</div>
+    </div>`;
+
+  let geoData = {};
+  try{
+    const r = await fetch('/api/geocode');
+    geoData = await r.json();
+    if(geoData.error) throw new Error(geoData.error);
+  } catch(e){
+    v.innerHTML=`<div class="empty"><div class="empty-ic">⚠️</div><h2>Erreur géocodage</h2><p>${e.message}</p></div>`;
+    return;
+  }
+
+  const {restaurantStats:RS, actionPlan:AP, period, restaurants} = S.data;
+  const rList = restaurants;
+
+  // Build map HTML
+  v.innerHTML=`
+    <div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <div class="pbadge" style="margin:0">📅 ${fD(period.allDates[0])} → ${fD(period.allDates[period.allDates.length-1])} · ${rList.length} établissements</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:.72rem;color:var(--muted);font-weight:600">CRITICITÉ :</span>
+        ${[['#22c55e','Conforme ≥75'],['#f59e0b','Vigilance 60-74'],['#f97316','À risque 45-59'],['#ef4444','Critique <45']].map(([col,lbl])=>`
+          <span style="display:flex;align-items:center;gap:4px;font-size:.75rem">
+            <span style="width:12px;height:12px;border-radius:50%;background:${col};display:inline-block;border:2px solid rgba(255,255,255,.8);box-shadow:0 1px 4px rgba(0,0,0,.2)"></span>
+            ${lbl}
+          </span>`).join('')}
+        <span style="font-size:.72rem;color:var(--muted);margin-left:8px">● Taille = niveau de risque · Cliquez pour actions P1</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start">
+      <div id="leaflet-map" style="height:580px;border-radius:12px;overflow:hidden;box-shadow:var(--shadow-md)"></div>
+      <div id="map-sidebar">
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-t">📍 Établissements</div>
+          ${rList.map(r=>{
+            const rs=RS[r.id]; if(!rs) return '';
+            const cs=rs.complianceScore;
+            const p1=AP.filter(a=>a.priority==='P1'&&a.site===r.name);
+            return `<div class="map-list-item cr" onclick="focusMarker(${r.id})" id="sideitem-${r.id}" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9">
+              <span style="width:14px;height:14px;border-radius:50%;background:${cs.color};flex-shrink:0;border:2px solid rgba(255,255,255,.8);box-shadow:0 1px 4px rgba(0,0,0,.2)"></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name.replace('ILIA - ','')}</div>
+                <div style="font-size:.7rem;color:${cs.color};font-weight:600">${cs.score}/100 — ${cs.label}</div>
+              </div>
+              ${p1.length?`<span style="background:#fee2e2;color:#991b1b;padding:1px 6px;border-radius:5px;font-size:.68rem;font-weight:800;flex-shrink:0">${p1.length} P1</span>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="card" id="map-detail-panel" style="display:none"></div>
+      </div>
+    </div>`;
+
+  // Init Leaflet
+  if(mapInstance){ mapInstance.remove(); mapInstance=null; mapMarkers=[]; }
+
+  const map = L.map('leaflet-map', { zoomControl:true, attributionControl:true });
+  mapInstance = map;
+
+  // OSM tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom:18
+  }).addTo(map);
+
+  const bounds = [];
+
+  rList.forEach(r=>{
+    const geo = geoData[r.id];
+    const rs = RS[r.id];
+    if(!geo||!rs) return;
+
+    const cs = rs.complianceScore;
+    const mt = rs.maturity;
+    const re = rs.regulatoryExposure;
+    const p1 = AP.filter(a=>a.priority==='P1'&&a.site===r.name);
+    const p2 = AP.filter(a=>a.priority==='P2'&&a.site===r.name);
+    const col = SCORE_COLOR(cs.score);
+    const rad = SCORE_RADIUS(cs.score);
+
+    // Pulsing outer ring for critical sites
+    if(cs.score < 45){
+      L.circleMarker([geo.lat, geo.lng],{
+        radius: rad+6, fillColor:col, color:col,
+        weight:1, fillOpacity:0.18, className:'pulse-ring'
+      }).addTo(map);
+    }
+
+    const marker = L.circleMarker([geo.lat, geo.lng],{
+      radius: rad,
+      fillColor: col,
+      color: '#ffffff',
+      weight: 2.5,
+      opacity: 1,
+      fillOpacity: 0.92,
+    }).addTo(map);
+
+    // Hover tooltip
+    marker.bindTooltip(`
+      <div style="font-family:Inter,sans-serif;min-width:180px">
+        <div style="font-weight:800;font-size:.88rem;margin-bottom:4px">${r.name}</div>
+        <div style="font-size:.8rem;font-weight:700;color:${col};margin-bottom:6px">${cs.score}/100 — ${cs.label}</div>
+        <div style="font-size:.75rem;color:#555;margin-bottom:4px">Maturité : ${mt.icon} ${mt.label} (niv. ${mt.level})</div>
+        <div style="font-size:.75rem;color:#555">Exposition régl. : <strong style="color:${re.color}">${re.label}</strong></div>
+        ${p1.length?`<div style="margin-top:6px;padding:6px 8px;background:#fee2e2;border-radius:5px;font-size:.74rem;color:#991b1b;font-weight:700">⚠ ${p1.length} action${p1.length>1?'s':''} P1 — cliquez pour détail</div>`:''}
+      </div>`,
+      { permanent:false, direction:'top', offset:[0,-rad], className:'leaflet-tooltip-haccp' }
+    );
+
+    // Click popup
+    const popupHtml = buildPopup(r, rs, p1, p2, col);
+    marker.bindPopup(popupHtml, { maxWidth:300, className:'leaflet-popup-haccp' });
+
+    marker.on('click', ()=>highlightSideItem(r.id));
+    marker.on('popupopen', ()=>highlightSideItem(r.id));
+
+    mapMarkers.push({ id:r.id, marker, lat:geo.lat, lng:geo.lng });
+    bounds.push([geo.lat, geo.lng]);
+  });
+
+  // Fit bounds
+  if(bounds.length===1) map.setView(bounds[0], 14);
+  else if(bounds.length>1) map.fitBounds(bounds, { padding:[60,60], maxZoom:14 });
+  else map.setView([46.8, 2.3], 6);
+}
+
+function buildPopup(r, rs, p1, p2, col){
+  const cs=rs.complianceScore, mt=rs.maturity, re=rs.regulatoryExposure;
+  return `<div style="font-family:Inter,sans-serif;min-width:260px;max-width:280px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0f0f0">
+      <span style="font-size:1.3rem">${rs.profileData?.icon||'📍'}</span>
+      <div>
+        <div style="font-weight:800;font-size:.92rem">${r.name}</div>
+        <div style="font-size:.75rem;color:${col};font-weight:700">${cs.score}/100 — ${cs.label}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;font-size:.74rem">
+      <div style="background:#f8fafc;padding:5px 8px;border-radius:6px">
+        <div style="color:#888;margin-bottom:2px">Maturité</div>
+        <div style="font-weight:700;color:${mt.color}">${mt.icon} Niv.${mt.level} ${mt.label}</div>
+      </div>
+      <div style="background:#f8fafc;padding:5px 8px;border-radius:6px">
+        <div style="color:#888;margin-bottom:2px">Risque régl.</div>
+        <div style="font-weight:700;color:${re.color}">${re.label}</div>
+      </div>
+    </div>
+    ${p1.length?`
+    <div style="margin-bottom:8px">
+      <div style="font-size:.72rem;font-weight:800;color:#991b1b;margin-bottom:6px;display:flex;align-items:center;gap:5px">
+        <span style="background:#fee2e2;padding:1px 7px;border-radius:5px">P1 — Cette semaine</span>
+        <span>${p1.length} action${p1.length>1?'s':''}</span>
+      </div>
+      ${p1.map(a=>`<div style="font-size:.78rem;padding:6px 8px;background:#fff8f8;border-left:3px solid #ef4444;border-radius:4px;margin-bottom:5px">
+        <div style="font-weight:700;margin-bottom:2px">${a.title}</div>
+        <div style="color:#888;font-size:.72rem">${a.module||''} · Effort: ${a.effort} · ${a.scoreImpact}</div>
+      </div>`).join('')}
+    </div>`:'<div style="font-size:.78rem;color:#22c55e;padding:6px 0">✅ Aucune action P1 requise</div>'}
+    ${p2.length?`<div style="font-size:.7rem;color:#92400e;background:#fffbeb;padding:6px 8px;border-radius:6px">
+      📌 ${p2.length} action${p2.length>1?'s':''} P2 ce mois — <a href="#" onclick="event.preventDefault();goProfile(${r.id})" style="color:#f97316;font-weight:700">voir profil →</a>
+    </div>`:''}
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0;text-align:center">
+      <a href="#" onclick="event.preventDefault();goProfile(${r.id})" style="font-size:.75rem;color:#f97316;font-weight:700;text-decoration:none">🔬 Ouvrir le profil complet →</a>
+    </div>
+  </div>`;
+}
+
+function highlightSideItem(rid){
+  document.querySelectorAll('.map-list-item').forEach(el=>el.style.background='');
+  const el=$(`sideitem-${rid}`);
+  if(el){ el.style.background='var(--orl)'; el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+}
+
+function focusMarker(rid){
+  const m = mapMarkers.find(x=>x.id===rid);
+  if(!m) return;
+  mapInstance.setView([m.lat,m.lng], Math.max(mapInstance.getZoom(),14), {animate:true});
+  m.marker.openPopup();
+}
+
+// ═══════════════════════════════ DOCS & SUIVI ════════════════════════════════
+
+const TODO_KEY = 'octopus_todos_v2';
+const OWNER_KEY = 'octopus_owners_v2';
+let docTab = 'kanban';
+
+function getTodoSt(id){ try{return JSON.parse(localStorage.getItem(TODO_KEY)||'{}')[id]||'open';}catch{return'open';} }
+function setTodoSt(id,st){ try{const o=JSON.parse(localStorage.getItem(TODO_KEY)||'{}');o[id]=st;localStorage.setItem(TODO_KEY,JSON.stringify(o));}catch{} }
+function getTodoOwner(id){ try{return JSON.parse(localStorage.getItem(OWNER_KEY)||'{}')[id]||'';}catch{return'';} }
+function setTodoOwner(id,v){ try{const o=JSON.parse(localStorage.getItem(OWNER_KEY)||'{}');o[id]=v;localStorage.setItem(OWNER_KEY,JSON.stringify(o));}catch{} }
+
+function cycleStatus(id){
+  const cur=getTodoSt(id);
+  setTodoSt(id,cur==='open'?'in_progress':cur==='in_progress'?'done':'open');
+  renderDocs();
+}
+function saveOwner(id,v){ setTodoOwner(id,v); }
+
+function copyText(text,btnId){
+  navigator.clipboard.writeText(text).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  }).finally(()=>{});
+  const btn=$(btnId);
+  if(btn){btn.textContent='✓ Copié !';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 Copier';btn.classList.remove('copied');},2000);}
+}
+
+function addDays(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+
+// ── Generate todos ──
+function genTodos(d){
+  const {actionPlan,anomalies,restaurantStats:RS}=d;
+  const todos=[];
+  actionPlan.forEach((a,i)=>{
+    const dl=a.priority==='P1'?addDays(7):a.priority==='P2'?addDays(30):addDays(60);
+    todos.push({id:'ap'+i,priority:a.priority,title:a.title,site:a.site,module:a.module,description:a.description,impact:a.impact,scoreImpact:a.scoreImpact,effort:a.effort,deadline:dl,type:a.type,category:'action'});
+  });
+  // CSM todos
+  const crit=anomalies.filter(a=>a.severity==='critical').length;
+  if(crit>0) todos.push({id:'csm1',priority:'P1',title:`Appeler les responsables — ${crit} alertes critiques`,site:'Tous les établissements',module:null,description:'Contacter les responsables des sites en alerte critique. Confirmer la réception du plan d\'action.',impact:'Réduction exposition réglementaire',scoreImpact:'Indirect',effort:'Faible',deadline:addDays(3),type:'csm',category:'csm'});
+  todos.push({id:'csm2',priority:'P1',title:'Envoyer les emails aux responsables',site:'Tous les établissements',module:null,description:'Envoyer les emails individuels générés dans l\'onglet Suivi & Docs > Emails.',impact:'Communication et engagement client',scoreImpact:'Indirect',effort:'Faible',deadline:addDays(2),type:'csm',category:'csm'});
+  todos.push({id:'csm3',priority:'P2',title:'Planifier les visites terrain prioritaires',site:Object.values(RS).sort((a,b)=>a.complianceScore.score-b.complianceScore.score).slice(0,2).map(r=>r.name.replace('ILIA - ','')).join(' & '),module:null,description:'Organiser des visites terrain sur les établissements à score < 50 pour accompagner l\'activation des modules critiques.',impact:'Mise en conformité et montée en maturité',scoreImpact:'+15 pts/site',effort:'Élevé',deadline:addDays(21),type:'csm',category:'csm'});
+  todos.push({id:'csm4',priority:'P2',title:'Envoyer le rapport au CODIR',site:'Groupe',module:null,description:'Présenter le bilan qualité au CODIR via le rapport généré dans l\'onglet Suivi & Docs.',impact:'Gouvernance qualité et engagement direction',scoreImpact:'Indirect',effort:'Faible',deadline:addDays(5),type:'csm',category:'csm'});
+  todos.push({id:'csm5',priority:'P3',title:'Planifier la Business Review trimestrielle',site:'Groupe',module:null,description:'Organiser une BR à 3 mois pour mesurer les progrès et aligner les objectifs du prochain trimestre.',impact:'Fidélisation et engagement long terme',scoreImpact:'Indirect',effort:'Moyen',deadline:addDays(45),type:'csm',category:'csm'});
+  return todos;
+}
+
+// ── Generate manager email ──
+function genManagerEmail(rid,d){
+  const {restaurantStats:RS,actionPlan,period,anomalies}=d;
+  const r=d.restaurants.find(x=>x.id==rid); const rs=RS[rid];
+  if(!r||!rs) return null;
+  const cs=rs.complianceScore;
+  const p1=actionPlan.filter(a=>a.priority==='P1'&&a.site===r.name);
+  const p2=actionPlan.filter(a=>a.priority==='P2'&&a.site===r.name);
+  const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const subject=`[HACCP] Actions qualité prioritaires — ${r.name} — Semaine du ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})}`;
+  const modLines=Object.entries(rs.modules).map(([m,ms])=>{
+    const val=ms.metric==='pct'?`${Math.round(ms.coverage*100)}% ${ms.displayUnit}`:`${ms.total} ${ms.displayUnit}`;
+    const ok=ms.metric==='pct'?ms.coverage>=0.65:ms.total>0;
+    return`  ${ok?'✓':'✗'} ${m} : ${val}`;
+  }).join('\n');
+  const p1Lines=p1.map((a,i)=>`${i+1}. ${a.title}\n   Pourquoi : ${a.description}\n   Impact : ${a.impact}\n   Effort : ${a.effort} — Délai : avant le ${addDays(7)}`).join('\n\n');
+  const body=`Bonjour,
+
+Suite au bilan de conformité HACCP de votre établissement pour la période du ${fD(period.allDates[0])} au ${fD(period.allDates[period.allDates.length-1])}, nous souhaitons attirer votre attention sur les points suivants.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCORE DE CONFORMITÉ : ${cs.score}/100 — ${cs.label.toUpperCase()}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${cs.score<60?'\n⚠️ Votre score est en dessous du seuil acceptable (60/100). En cas de contrôle sanitaire DDPP, des non-conformités majeures pourraient être relevées.\n':''}
+ÉTAT DE VOS MODULES HACCP :
+${modLines}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${p1.length>0?`ACTIONS PRIORITAIRES — À réaliser avant le ${addDays(7)} :
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${p1Lines}`:'✅ Aucune action critique requise cette semaine — continuez ainsi !'}
+${p2.length>0?`\nACTIONS À PLANIFIER CE MOIS :\n${p2.map((a,i)=>`${i+1}. ${a.title} — avant le ${addDays(30)}`).join('\n')}`:''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RAPPELS RÉGLEMENTAIRES CLÉS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• 🌡️ Températures frigos : relevés obligatoires 2x/jour (≤4°C viandes, ≤2°C poissons)
+  Réglementation : Arrêté du 21 décembre 2009
+
+• 📦 Contrôles à réception : à réaliser pour CHAQUE livraison
+  Réglementation : Règlement CE 852/2004 — Point de Contrôle Critique
+
+• 🧹 Nettoyage & désinfection : selon votre Plan de Nettoyage Désinfection (PND)
+  Réglementation : Règlement CE 852/2004, Annexe II
+
+• 📅 Traçabilité 7j/7 : la conformité HACCP s'applique les samedis, dimanches et jours fériés
+
+En cas de question ou besoin d'accompagnement, votre équipe Octopus HACCP est disponible.
+
+Bien cordialement,
+
+L'équipe Customer Success
+Octopus HACCP | ${today}`;
+  return{subject,body,name:r.name,score:cs.score,level:cs.label,p1Count:p1.length};
+}
+
+// ── Generate CODIR email ──
+function genCodirEmail(d){
+  const{groupScore,groupLevelData:GL,restaurantStats:RS,actionPlan,anomalies,period}=d;
+  const rList=Object.values(RS).sort((a,b)=>b.complianceScore.score-a.complianceScore.score);
+  const totalActions=rList.reduce((s,r)=>s+r.overall.total,0);
+  const critCount=anomalies.filter(a=>a.severity==='critical').length;
+  const p1=actionPlan.filter(a=>a.priority==='P1');
+  const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const subject=`Rapport Qualité HACCP — Groupe — ${fD(period.allDates[0])} au ${fD(period.allDates[period.allDates.length-1])} — Score ${groupScore}/100`;
+  const siteLines=rList.map(r=>`  • ${r.name.padEnd(22)} ${r.complianceScore.score}/100 ${r.complianceScore.label} | ${r.regulatoryExposure.label}`).join('\n');
+  const missingMods=[...new Set(rList.flatMap(r=>r.missingCritical))];
+  const p1Impact=p1.reduce((s,a)=>{const m=parseInt((a.scoreImpact||'0').replace(/\D/g,''));return s+(isNaN(m)?0:m);},0);
+  const body=`Mesdames, Messieurs,
+
+Vous trouverez ci-dessous le rapport de conformité HACCP du groupe pour la période du ${fD(period.allDates[0])} au ${fD(period.allDates[period.allDates.length-1])}.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SYNTHÈSE EXÉCUTIVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Score de conformité groupe : ${groupScore}/100 — ${GL.label.toUpperCase()}
+Actions tracées : ${fN(totalActions)} | Alertes : ${anomalies.length} (${critCount} critiques) | Actions P1 : ${p1.length}
+
+${groupScore<50?'⚠️  SITUATION CRITIQUE : Actions correctives immédiates nécessaires.':groupScore<75?'🟡  VIGILANCE : Des améliorations ciblées sont requises pour atteindre la conformité.':'✅  CONFORME : Le groupe maintient un niveau de conformité satisfaisant.'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAT DES ÉTABLISSEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${siteLines}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RISQUES IDENTIFIÉS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${missingMods.length>0?missingMods.map(m=>`⚠️  Module "${m}" absent sur ${rList.filter(r=>r.missingCritical.includes(m)).length}/${rList.length} établissements — risque réglementaire direct`).join('\n'):'✅  Aucun module critique manquant'}
+${rList.filter(r=>r.overall.halfTrend<-0.2).length>0?'\n📉  Tendance baissière : '+rList.filter(r=>r.overall.halfTrend<-0.2).map(r=>r.name.replace('ILIA - ','')).join(', '):''}
+${anomalies.filter(a=>a.type==='weekend').length>0?'\n📅  Traçabilité week-end insuffisante sur '+anomalies.filter(a=>a.type==='weekend').length+' établissement(s)':''}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PLAN D'ACTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${p1.length} action(s) P1 à traiter cette semaine — impact potentiel : +${p1Impact} points
+${p1.slice(0,5).map((a,i)=>`  ${i+1}. [${a.site.replace('ILIA - ','')}] ${a.title} (${a.scoreImpact})`).join('\n')}
+
+Objectif période suivante : ${Math.min(100,groupScore+15)}/100 (+${Math.min(100,groupScore+15)-groupScore} pts)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ce rapport a été généré automatiquement par Octopus Intelligence.
+Date : ${today}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+  return{subject,body};
+}
+
+// ── Switch doc sub-tab ──
+function switchDocTab(tab){
+  docTab=tab;
+  document.querySelectorAll('.doc-tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  document.querySelectorAll('.doc-section').forEach(s=>s.classList.toggle('on',s.id==='dsec-'+tab));
+}
+
+// ── MAIN RENDER ──
+function renderDocs(){
+  const d=S.data; if(!d) return;
+  const todos=genTodos(d);
+  const open=todos.filter(t=>getTodoSt(t.id)==='open');
+  const inprog=todos.filter(t=>getTodoSt(t.id)==='in_progress');
+  const done=todos.filter(t=>getTodoSt(t.id)==='done');
+  const pctDone=todos.length>0?Math.round(done.length/todos.length*100):0;
+
+  const selRid=S.selEmailRid||d.restaurants[0]?.id;
+  S.selEmailRid=selRid;
+  const mEmail=genManagerEmail(selRid,d);
+  const cEmail=genCodirEmail(d);
+
+  const rList=Object.values(d.restaurantStats).sort((a,b)=>b.complianceScore.score-a.complianceScore.score);
+  const critAnom=d.anomalies.filter(a=>a.severity==='critical');
+  const totalActions=rList.reduce((s,r)=>s+r.overall.total,0);
+  const p1=d.actionPlan.filter(a=>a.priority==='P1');
+  const p1Impact=p1.reduce((s,a)=>{const m=parseInt((a.scoreImpact||'0').replace(/\D/g,''));return s+(isNaN(m)?0:m);},0);
+
+  function kanCard(t){
+    const st=getTodoSt(t.id);
+    const owner=getTodoOwner(t.id);
+    const stLabel=st==='open'?'Démarrer →':st==='in_progress'?'Terminer ✓':'Rouvrir ↺';
+    const stStyle=st==='open'?'background:#fee2e2;color:#991b1b':st==='in_progress'?'background:var(--aml);color:#b45309':'background:var(--grl);color:#166534';
+    const pStyle=t.priority==='P1'?'background:#fee2e2;color:#991b1b':t.priority==='P2'?'background:var(--aml);color:#b45309':'background:var(--bll);color:#1d4ed8';
+    const catIcon=t.category==='csm'?'👤':'🎯';
+    return`<div class="kan-card ${st}" onclick="">
+      <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="${pStyle};padding:1px 8px;border-radius:5px;font-size:.68rem;font-weight:800">${t.priority}</span>
+        <span class="kan-tag">${catIcon} ${t.category==='csm'?'CSM':'Action'}</span>
+        ${t.module?`<span class="kan-tag">${t.module}</span>`:''}
+      </div>
+      <div class="kan-title">${t.title}</div>
+      <div class="kan-meta">
+        <span>📍 ${t.site.replace('ILIA - ','')}</span>
+        <span>⏱ ${t.deadline}</span>
+        ${t.scoreImpact&&t.scoreImpact!=='Indirect'?`<span style="color:var(--gr);font-weight:700">${t.scoreImpact}</span>`:''}
+      </div>
+      <div style="font-size:.74rem;color:var(--muted);margin-bottom:8px">${t.impact}</div>
+      <div class="kan-footer">
+        <input class="owner-input" type="text" placeholder="👤 Responsable…" value="${owner}" onchange="setTodoOwner('${t.id}',this.value)" onclick="event.stopPropagation()"/>
+        <button class="kan-status-btn" style="${stStyle}" onclick="event.stopPropagation();cycleStatus('${t.id}')">${stLabel}</button>
+      </div>
+    </div>`;
+  }
+
+  // BR data
+  const br=d;
+  const gl=br.groupLevelData;
+
+  // CSM & Client roadmap
+  const csmTodos=[
+    {n:1,title:'Envoyer les emails aux responsables d\'établissement',sub:'Via l\'onglet Emails — aujourd\'hui',deadline:'Aujourd\'hui',col:'#ef4444'},
+    {n:2,title:'Appeler les responsables des sites critiques',sub:rList.filter(r=>r.complianceScore.score<50).map(r=>r.name.replace('ILIA - ','')).join(', ')||'Aucun site critique',deadline:'Dans 3 jours',col:'#ef4444'},
+    {n:3,title:'Envoyer le rapport au CODIR',sub:'Email CODIR généré dans l\'onglet Docs',deadline:'Cette semaine',col:'#f97316'},
+    {n:4,title:'Visites terrain sur les sites prioritaires',sub:'Accompagnement activation modules critiques',deadline:'Dans 2 semaines',col:'#f59e0b'},
+    {n:5,title:'Session de formation équipes',sub:'Saisie en temps réel — priorité modules absents',deadline:'Dans 3 semaines',col:'#3b82f6'},
+    {n:6,title:'Revue de mi-période avec les managers',sub:'Bilan des actions P1/P2 réalisées',deadline:'Dans 30 jours',col:'#8b5cf6'},
+    {n:7,title:'Préparer la Business Review trimestrielle',sub:'Présentation des résultats et nouveaux objectifs',deadline:'Dans 45 jours',col:'#14b8a6'},
+  ];
+
+  const clientTodos=[
+    {n:1,title:`Activer le module "Réceptions" sur tous les sites`,sub:'PCC obligatoire — chaque livraison doit être tracée',deadline:'Cette semaine',col:'#ef4444'},
+    {n:2,title:'Assurer la saisie quotidienne des températures frigos',sub:'2 relevés/jour minimum (matin + soir) sur chaque enceinte',deadline:'Immédiat',col:'#ef4444'},
+    {n:3,title:'Nommer un référent qualité par établissement',sub:'Responsable de la saisie quotidienne dans Octopus',deadline:'Dans 1 semaine',col:'#f97316'},
+    {n:4,title:'Maintenir une traçabilité complète le week-end',sub:'HACCP s\'applique 7j/7 — désigner les responsables W-E',deadline:'Ce week-end',col:'#f97316'},
+    {n:5,title:'Suivre le plan de nettoyage au quotidien',sub:'PND — chaque tâche planifiée doit être saisie à réalisation',deadline:'Dans 2 semaines',col:'#f59e0b'},
+    {n:6,title:`Activer le module "Gestion déchets"`,sub:'Traçabilité des pertes et DLC dépassées',deadline:'Dans 1 mois',col:'#3b82f6'},
+    {n:7,title:`Viser le score groupe ${Math.min(100,br.groupScore+20)}/100 au prochain bilan`,sub:'Via activation modules + régularité de saisie',deadline:'Prochain bilan',col:'#14b8a6'},
+  ];
+
+  $('v-docs').innerHTML=`
+    <div class="pbadge" style="margin-bottom:12px">📋 Suivi & Documents — ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn-go" style="background:linear-gradient(135deg,var(--or),#f59e0b);padding:9px 20px;font-size:.85rem;display:flex;align-items:center;gap:8px" onclick="openIBR()">▶ Lancer la Business Review Interactive</button>
+      <button class="btn-go" style="background:var(--navy);padding:9px 16px;font-size:.82rem" onclick="switchDocTab('audit');runAudit()">🔍 Audit qualité API</button>
+    </div>
+    <nav class="doc-nav">
+      <button class="doc-tab ${docTab==='kanban'?'on':''}" data-tab="kanban" onclick="switchDocTab('kanban')">🗂 Plan de suivi (${todos.length})</button>
+      <button class="doc-tab ${docTab==='emails'?'on':''}" data-tab="emails" onclick="switchDocTab('emails')">✉️ Emails</button>
+      <button class="doc-tab ${docTab==='br'?'on':''}" data-tab="br" onclick="switchDocTab('br')">📊 BR statique + PDF</button>
+      <button class="doc-tab ${docTab==='roadmap'?'on':''}" data-tab="roadmap" onclick="switchDocTab('roadmap')">🗺 Roadmap CSM & Client</button>
+      <button class="doc-tab ${docTab==='audit'?'on':''}" data-tab="audit" onclick="switchDocTab('audit')">🔍 Audit API</button>
+    </nav>
+
+    <!-- ══ KANBAN ══ -->
+    <div class="doc-section ${docTab==='kanban'?'on':''}" id="dsec-kanban">
+      <div class="prog-bar-header">
+        <div style="font-size:.85rem;font-weight:700">${done.length}/${todos.length} actions réalisées</div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pctDone}%"></div></div>
+        <div style="font-size:.85rem;font-weight:800;color:${pctDone>=70?'var(--gr)':pctDone>=40?'var(--am)':'var(--re)'}">${pctDone}%</div>
+        <div style="font-size:.75rem;color:var(--muted)">${open.length} à faire · ${inprog.length} en cours · ${done.length} terminées</div>
+      </div>
+      <div class="kanban">
+        <div class="kan-col">
+          <div class="kan-col-head" style="color:var(--re)">🔴 À faire <span class="kan-count">${open.length}</span></div>
+          ${open.map(t=>kanCard(t)).join('')||'<div style="font-size:.8rem;color:var(--muted);text-align:center;padding:20px">Aucune action en attente 🎉</div>'}
+        </div>
+        <div class="kan-col">
+          <div class="kan-col-head" style="color:var(--am)">🟡 En cours <span class="kan-count">${inprog.length}</span></div>
+          ${inprog.map(t=>kanCard(t)).join('')||'<div style="font-size:.8rem;color:var(--muted);text-align:center;padding:20px">Aucune action en cours</div>'}
+        </div>
+        <div class="kan-col">
+          <div class="kan-col-head" style="color:var(--gr)">✅ Terminé <span class="kan-count">${done.length}</span></div>
+          ${done.map(t=>kanCard(t)).join('')||'<div style="font-size:.8rem;color:var(--muted);text-align:center;padding:20px">Aucune action terminée pour l\'instant</div>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EMAILS ══ -->
+    <div class="doc-section ${docTab==='emails'?'on':''}" id="dsec-emails">
+      <div class="g2">
+        <!-- Email responsables -->
+        <div>
+          <div class="sec">✉️ Emails responsables d'établissements</div>
+          <div class="card" style="margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+              <span style="font-size:.8rem;font-weight:600">Établissement :</span>
+              <select onchange="S.selEmailRid=parseInt(this.value);renderDocs()" style="border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:.82rem;outline:none">
+                ${d.restaurants.map(r=>`<option value="${r.id}" ${r.id==selRid?'selected':''}>${r.name}</option>`).join('')}
+              </select>
+              ${mEmail?`<span style="font-size:.75rem;font-weight:700;color:${d.restaurantStats[selRid]?.complianceScore?.color||'#aaa'}">${mEmail.score}/100 — ${mEmail.level} · ${mEmail.p1Count} action${mEmail.p1Count>1?'s':''} P1</span>`:''}
+            </div>
+            ${mEmail?`
+            <div class="email-subject">
+              <span>📧 ${mEmail.subject}</span>
+              <button class="copy-btn" id="btn-copy-subj" onclick="copyText('${mEmail.subject.replace(/'/g,"\\'")}','btn-copy-subj')">📋 Copier</button>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+              <button class="copy-btn" id="btn-copy-mgr" onclick="copyText(document.getElementById('email-mgr-body').textContent,'btn-copy-mgr')">📋 Copier le mail complet</button>
+            </div>
+            <pre class="email-box" id="email-mgr-body">${mEmail.body}</pre>`:''}
+          </div>
+        </div>
+        <!-- Email CODIR -->
+        <div>
+          <div class="sec">✉️ Email CODIR — Direction</div>
+          <div class="card">
+            <div class="email-subject">
+              <span style="font-size:.78rem">📧 ${cEmail.subject}</span>
+              <button class="copy-btn" id="btn-copy-cdir-s" onclick="copyText('${cEmail.subject.replace(/'/g,"\\'")}','btn-copy-cdir-s')">📋</button>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+              <button class="copy-btn" id="btn-copy-codir" onclick="copyText(document.getElementById('email-codir-body').textContent,'btn-copy-codir')">📋 Copier le mail CODIR</button>
+            </div>
+            <pre class="email-box" id="email-codir-body">${cEmail.body}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BUSINESS REVIEW ══ -->
+    <div class="doc-section ${docTab==='br'?'on':''}" id="dsec-br">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="br-print-btn" onclick="window.print()">🖨 Imprimer / PDF</button>
+      </div>
+      <div class="br-doc" id="br-doc-content">
+        <div class="br-header">
+          <div class="br-logo">Octopus<span style="color:var(--or)">.</span>Intelligence</div>
+          <div class="br-title">Business Review — Conformité HACCP</div>
+          <div class="br-sub">Période : ${fD(br.period.allDates[0])} → ${fD(br.period.allDates[br.period.allDates.length-1])} · ${br.restaurants.length} établissements · Généré le ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+        </div>
+
+        <div class="br-sec-title">1. Synthèse exécutive</div>
+        <div class="br-kpis">
+          <div class="br-kpi"><div class="br-kpi-v" style="color:${gl.color}">${br.groupScore}</div><div class="br-kpi-l">Score conformité /100</div></div>
+          <div class="br-kpi"><div class="br-kpi-v">${fN(totalActions)}</div><div class="br-kpi-l">Actions tracées</div></div>
+          <div class="br-kpi"><div class="br-kpi-v" style="color:${critAnom.length>0?'var(--re)':'var(--gr)'}">${d.anomalies.length}</div><div class="br-kpi-l">Alertes détectées</div></div>
+          <div class="br-kpi"><div class="br-kpi-v" style="color:var(--or)">${p1.length}</div><div class="br-kpi-l">Actions P1 requises</div></div>
+        </div>
+        <p style="font-size:.85rem;line-height:1.7;color:var(--muted);margin-bottom:8px">
+          Sur la période analysée, le groupe enregistre <strong>${fN(totalActions)} actions de traçabilité HACCP</strong> réparties sur ${br.restaurants.length} établissements.
+          Le score de conformité groupe s'établit à <strong style="color:${gl.color}">${br.groupScore}/100 — ${gl.label}</strong>.
+          ${critAnom.length>0?`<strong style="color:var(--re)">${critAnom.length} non-conformité${critAnom.length>1?'s':''} critique${critAnom.length>1?'s':''} ont été détectées</strong>, exposant le groupe à un risque réglementaire en cas de contrôle DDPP.`:' Aucune non-conformité critique détectée sur la période.'}
+        </p>
+
+        <div class="br-sec-title">2. Performance par établissement</div>
+        <table class="br-table">
+          <thead><tr><th>Établissement</th><th>Score</th><th>Niveau</th><th>Maturité</th><th>Exposition régl.</th><th>Actions tracées</th><th>Tendance</th></tr></thead>
+          <tbody>${rList.map(r=>`<tr>
+            <td><strong>${r.name}</strong></td>
+            <td class="br-score" style="color:${r.complianceScore.color}">${r.complianceScore.score}/100</td>
+            <td><span style="background:${r.complianceScore.color}18;color:${r.complianceScore.color};padding:2px 8px;border-radius:5px;font-size:.75rem;font-weight:700">${r.complianceScore.label}</span></td>
+            <td style="color:${r.maturity.color};font-weight:700">${r.maturity.icon} Niv.${r.maturity.level}</td>
+            <td><span style="color:${r.regulatoryExposure.color};font-weight:600">${r.regulatoryExposure.label}</span></td>
+            <td>${fN(r.overall.total)}</td>
+            <td>${trendSpan(r.overall.halfTrend)}</td>
+          </tr>`).join('')}
+          </tbody>
+        </table>
+
+        <div class="br-sec-title">3. Analyse des modules HACCP</div>
+        <table class="br-table">
+          <thead><tr><th>Module</th><th>Type métrique</th><th>Total groupe</th><th>Sites actifs</th><th>Statut réglementaire</th></tr></thead>
+          <tbody>${Object.entries(d.moduleTotals).map(([mod,tot])=>{
+            const isCrit=['Températures frigos','Plans de nettoyage','Réceptions'].includes(mod);
+            const activeSites=rList.filter(r=>r.modules[mod]?.total>0).length;
+            const ms0=rList[0]?.modules[mod];
+            const valStr=ms0?.metric==='pct'?`Moy. ${Math.round(Object.values(d.restaurantStats).reduce((s,r)=>s+(r.modules[mod]?.coverage||0),0)/Math.max(rList.length,1)*100)}% couverture`:`${fN(tot)} opérations`;
+            const ok=tot>0&&activeSites>=rList.length*0.6;
+            return`<tr>
+              <td><strong>${mod}</strong>${isCrit?' <span style="font-size:.68rem;color:var(--re);background:var(--rel);padding:1px 5px;border-radius:4px">CRITIQUE</span>':''}</td>
+              <td style="font-size:.78rem;color:var(--muted)">${ms0?.metric==='pct'?'% couverture':'Nombre d\'opérations'}</td>
+              <td style="font-weight:700">${valStr}</td>
+              <td style="font-weight:700;color:${activeSites===rList.length?'var(--gr)':activeSites===0?'var(--re)':'var(--am)'}">${activeSites}/${rList.length}</td>
+              <td>${tot===0&&isCrit?'<span style="color:var(--re);font-weight:700">⚠ Non-conformité</span>':ok?'<span style="color:var(--gr)">✓ Conforme</span>':'<span style="color:var(--am)">À améliorer</span>'}</td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table>
+
+        <div class="br-sec-title">4. Anomalies & Signaux détectés (${d.anomalies.length})</div>
+        <table class="br-table">
+          <thead><tr><th>Établissement</th><th>Module</th><th>Type</th><th>Sévérité</th><th>Observation</th><th>Action recommandée</th></tr></thead>
+          <tbody>${d.anomalies.slice(0,12).map(a=>`<tr>
+            <td style="font-size:.78rem">${a.restaurant}</td>
+            <td style="font-size:.75rem;color:var(--muted)">${a.module||'—'}</td>
+            <td style="font-size:.75rem">${a.icon} ${a.type}</td>
+            <td><span style="font-size:.7rem;padding:1px 7px;border-radius:5px;font-weight:700;background:${a.severity==='critical'?'#fee2e2':a.severity==='high'?'var(--aml)':'var(--bll)'};color:${a.severity==='critical'?'#991b1b':a.severity==='high'?'#b45309':'#1d4ed8'}">${a.severity==='critical'?'Critique':a.severity==='high'?'Important':'À suivre'}</span></td>
+            <td style="font-size:.76rem">${a.metric}</td>
+            <td style="font-size:.72rem;color:var(--muted)">${a.action?.slice(0,60)||'—'}…</td>
+          </tr>`).join('')}
+          </tbody>
+        </table>
+
+        <div class="br-sec-title">5. Plan d'action recommandé</div>
+        <table class="br-table">
+          <thead><tr><th>Priorité</th><th>Établissement</th><th>Action</th><th>Impact</th><th>Effort</th><th>Délai</th><th>Gain score</th></tr></thead>
+          <tbody>${d.actionPlan.map(a=>`<tr>
+            <td><span style="font-size:.7rem;padding:2px 8px;border-radius:5px;font-weight:800;background:${a.priority==='P1'?'#fee2e2':a.priority==='P2'?'var(--aml)':'var(--bll)'};color:${a.priority==='P1'?'#991b1b':a.priority==='P2'?'#b45309':'#1d4ed8'}">${a.priority}</span></td>
+            <td style="font-size:.78rem;font-weight:600">${a.site.replace('ILIA - ','')}</td>
+            <td style="font-size:.78rem">${a.title}</td>
+            <td style="font-size:.74rem;color:var(--muted)">${a.impact}</td>
+            <td style="font-size:.75rem">${a.effort}</td>
+            <td style="font-size:.75rem">${a.deadline}</td>
+            <td style="font-weight:700;color:var(--gr)">${a.scoreImpact}</td>
+          </tr>`).join('')}
+          </tbody>
+        </table>
+
+        <div class="br-sec-title">6. Objectifs période suivante</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div style="background:#f8fafc;border-radius:8px;padding:14px">
+            <div style="font-weight:700;margin-bottom:8px;color:var(--navy)">Cibles de performance</div>
+            <div style="font-size:.83rem;line-height:1.8">
+              • Score groupe cible : <strong style="color:var(--or)">${Math.min(100,br.groupScore+15)}/100</strong> (+${Math.min(100,br.groupScore+15)-br.groupScore} pts)<br>
+              • Températures frigos : <strong>>85% couverture</strong> sur tous les sites<br>
+              • Réceptions : <strong>activation obligatoire</strong> sur 5/5 sites<br>
+              • Couverture week-end : <strong>>60%</strong> activité vs semaine<br>
+              • Maturité : <strong>1 site en niveau 4</strong> (Maîtrisé)
+            </div>
+          </div>
+          <div style="background:#f8fafc;border-radius:8px;padding:14px">
+            <div style="font-weight:700;margin-bottom:8px;color:var(--navy)">KPIs de suivi</div>
+            <div style="font-size:.83rem;line-height:1.8">
+              • Score conformité groupe mensuel<br>
+              • % couverture températures frigos/site<br>
+              • Nb contrôles à réception/mois/site<br>
+              • Nb modules actifs par établissement<br>
+              • Nombre d'alertes critiques résiduelles
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;padding:16px;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);margin-top:8px">
+          Document généré par Octopus Intelligence · ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})} · Confidentiel
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ROADMAP ══ -->
+    <div class="doc-section ${docTab==='roadmap'?'on':''}" id="dsec-roadmap">
+      <div class="g2">
+        <!-- KPIs -->
+      </div>
+      <div class="roadmap-grid">
+        <div>
+          <div class="sec">👤 Todo CSM — Prochaines étapes</div>
+          <div class="card">
+            ${csmTodos.map(t=>`<div class="road-item">
+              <div class="road-num" style="background:${t.col}22;color:${t.col}">${t.n}</div>
+              <div class="road-body">
+                <div class="road-title">${t.title}</div>
+                <div class="road-sub">${t.sub}</div>
+                <span class="road-deadline" style="background:${t.col}18;color:${t.col}">${t.deadline}</span>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="sec">🏠 Todo Client — Engagements demandés</div>
+          <div class="card">
+            ${clientTodos.map(t=>`<div class="road-item">
+              <div class="road-num" style="background:${t.col}22;color:${t.col}">${t.n}</div>
+              <div class="road-body">
+                <div class="road-title">${t.title}</div>
+                <div class="road-sub">${t.sub}</div>
+                <span class="road-deadline" style="background:${t.col}18;color:${t.col}">${t.deadline}</span>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="sec" style="margin-top:20px">📊 Synthèse stratégique CSM</div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;font-size:.83rem">
+          <div style="background:var(--rel);border-radius:8px;padding:14px">
+            <div style="font-weight:800;color:var(--re);margin-bottom:8px">🔴 Risques immédiats</div>
+            <ul style="padding-left:16px;line-height:1.8;color:var(--txt)">
+              <li>Modules critiques absents (Réceptions)</li>
+              <li>Score groupe ${br.groupScore}/100 — zone critique</li>
+              <li>Exposition réglementaire élevée</li>
+              <li>${critAnom.length} alertes HACCP en attente</li>
+            </ul>
+          </div>
+          <div style="background:var(--aml);border-radius:8px;padding:14px">
+            <div style="font-weight:800;color:#b45309;margin-bottom:8px">🟡 Opportunités</div>
+            <ul style="padding-left:16px;line-height:1.8;color:var(--txt)">
+              <li>${rList.filter(r=>r.overall.halfTrend>0.1).length} site(s) en progression</li>
+              <li>Plans de nettoyage bien adoptés</li>
+              <li>Potentiel +${p1Impact} pts avec les actions P1</li>
+              <li>Module Déchets non utilisé = opportunité</li>
+            </ul>
+          </div>
+          <div style="background:var(--grl);border-radius:8px;padding:14px">
+            <div style="font-weight:800;color:#166534;margin-bottom:8px">✅ Points forts</div>
+            <ul style="padding-left:16px;line-height:1.8;color:var(--txt)">
+              <li>${fN(totalActions)} actions tracées sur la période</li>
+              <li>${rList.filter(r=>r.modules['Plans de nettoyage'].total>0).length}/5 sites actifs sur le nettoyage</li>
+              <li>Températures frigos suivies (${Math.round(Object.values(d.restaurantStats).reduce((s,r)=>s+(r.modules['Températures frigos']?.coverage||0),0)/rList.length*100)}% couverture moy.)</li>
+              <li>Données disponibles pour analyse</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AUDIT ══ -->
+    <div class="doc-section ${docTab==='audit'?'on':''}" id="dsec-audit">
+      <div id="audit-content"><div class="empty"><div class="empty-ic">🔍</div><h2>Audit Qualité API</h2><p>Cliquez sur "Audit qualité API" pour lancer l'analyse.</p></div></div>
+    </div>`;
+}
+
+// ── AUDIT ──
+async function runAudit(){
+  const $a=document.getElementById('audit-content');
+  if(!$a)return;
+  $a.innerHTML=`<div style="text-align:center;padding:40px"><div class="spin" style="margin:0 auto 12px"></div><div style="color:var(--muted)">Audit en cours — interrogation de tous les endpoints…</div></div>`;
+  try{
+    const r=await fetch('/api/audit');
+    const data=await r.json();
+    renderAuditReport(data);
+  }catch(e){
+    $a.innerHTML=`<div class="empty"><div class="empty-ic">⚠️</div><h2>Erreur</h2><p>${e.message}</p></div>`;
+  }
+}
+
+function renderAuditReport(d){
+  const $a=document.getElementById('audit-content');
+  if(!$a)return;
+  const qColor=d.qualityScore>=80?'var(--gr)':d.qualityScore>=60?'var(--am)':'var(--re)';
+  $a.innerHTML=`
+    <div class="kpis" style="margin-bottom:16px">
+      <div class="kpi"><div class="kpi-accent"></div><div class="kpi-l">Score qualité données</div><div class="kpi-v" style="color:${qColor}">${d.qualityScore}/100</div><div class="kpi-s">${new Date(d.timestamp).toLocaleTimeString('fr-FR')}</div></div>
+      <div class="kpi re"><div class="kpi-accent"></div><div class="kpi-l">Problèmes critiques</div><div class="kpi-v">${d.summary.issues.length}</div></div>
+      <div class="kpi am"><div class="kpi-accent"></div><div class="kpi-l">Avertissements</div><div class="kpi-v" style="color:var(--am)">${d.summary.warnings.length}</div></div>
+      <div class="kpi gr"><div class="kpi-accent"></div><div class="kpi-l">Contrôles OK</div><div class="kpi-v">${d.summary.ok.length}</div></div>
+    </div>
+
+    ${d.summary.issues.length?`
+    <div class="sec">🔴 Problèmes critiques</div>
+    ${d.summary.issues.map(i=>`<div class="audit-card audit-err"><div class="audit-title">⚠ ${i}</div></div>`).join('')}`:''}
+
+    ${d.summary.warnings.length?`
+    <div class="sec">🟡 Avertissements</div>
+    ${d.summary.warnings.map(w=>`<div class="audit-card audit-warn"><div class="audit-title">💡 ${w}</div></div>`).join('')}`:''}
+
+    <div class="sec">🔵 Restaurants</div>
+    <div class="audit-card audit-ok">
+      <div class="audit-title">✓ ${d.restaurants?.count||0} restaurant(s) chargé(s)</div>
+      <div class="audit-detail">
+        IDs: ${d.restaurants?.ids?.join(', ')||'—'}<br>
+        Champs disponibles: ${d.restaurants?.fields?.map(f=>`<span class="audit-field">${f}</span>`).join(' ')||'—'}
+      </div>
+    </div>
+
+    <div class="sec">📦 Modules HACCP — Détail par endpoint</div>
+    ${Object.entries(d.modules||{}).map(([mod,mr])=>{
+      const cls=mr.issues?.length>0?'audit-err':mr.warnings?.length>0?'audit-warn':'audit-ok';
+      const icon=mr.issues?.length>0?'🔴':mr.warnings?.length>0?'🟡':'✅';
+      return`<div class="audit-card ${cls}" style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+          <div class="audit-title">${icon} ${mod} ${mr.critical?'<span style="font-size:.68rem;color:var(--re);background:var(--rel);padding:1px 6px;border-radius:4px">CRITIQUE</span>':''}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="font-size:.72rem;background:var(--bll);color:var(--bl);padding:1px 8px;border-radius:5px;font-weight:700">Total: ${fN(mr.totalItems)}</span>
+            <span style="font-size:.72rem;background:#f1f5f9;padding:1px 8px;border-radius:5px">${mr.totalPages} page${mr.totalPages>1?'s':''}</span>
+            <span style="font-size:.72rem;background:${mr.restaurantIdCoverage==='100% (50/50)'||mr.restaurantIdCoverage?.startsWith('100')?'var(--grl)':'var(--aml)'};padding:1px 8px;border-radius:5px">rId: ${mr.restaurantIdCoverage}</span>
+          </div>
+        </div>
+        <div class="audit-detail">
+          <strong>Endpoint:</strong> <span class="audit-field">/api/${mr.endpoint}</span>
+          · <strong>Métrique:</strong> ${mr.metricType==='pct'?'Pourcentage (%)':'Nombre (count)'}
+          · <strong>Dates détectées:</strong> ${mr.dateFieldsFound?.map(f=>`<span class="audit-field">${f}</span>`).join(' ')||'<span style="color:var(--re)">Aucune !</span>'}
+          ${mr.matchedRIds?.length?`<br><strong>Restaurants identifiés:</strong> ${mr.matchedRIds.join(', ')}`:''}
+          ${mr.unmatchedRIds?.length?`<br><span style="color:var(--re)">⚠ restaurant_id non reconnus: ${mr.unmatchedRIds.join(', ')}</span>`:''}
+          ${mr.orphaned>0?`<br><span style="color:var(--re)">⚠ ${mr.orphaned} item(s) sans restaurant_id</span>`:''}
+          ${mr.issues?.map(i=>`<br><span style="color:var(--re)">• ${i}</span>`).join('')||''}
+          ${mr.warnings?.map(w=>`<br><span style="color:var(--am)">• ${w}</span>`).join('')||''}
+          ${mr.sampleItem?`<br><strong>Champs disponibles dans les items:</strong> ${Object.keys(mr.sampleItem).map(f=>`<span class="audit-field">${f}</span>`).join(' ')}`:''}
+        </div>
+        ${mr.perRestaurant&&Object.keys(mr.perRestaurant).length>0?`
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          ${Object.entries(mr.perRestaurant).map(([rid,cnt])=>{
+            const rname=d.restaurants?.samples?.find(r=>r.id==rid)?.name?.replace('ILIA - ','')||rid;
+            return`<span style="background:rgba(30,136,229,.1);color:var(--bl);padding:2px 8px;border-radius:5px;font-size:.72rem"><strong>${rname}:</strong> ${cnt} items/page</span>`;
+          }).join('')}
+        </div>`:''}
+      </div>`;
+    }).join('')}
+
+    <div class="sec">📊 Validation croisée — Pagination</div>
+    <div class="card">
+      <div class="card-t">Vérification de la complétude des données</div>
+      <table><thead><tr><th>Module</th><th>Total déclaré</th><th>Pages</th><th>Pages chargées</th><th>Items potentiellement manqués</th></tr></thead>
+      <tbody>${Object.entries(d.crossValidation||{}).filter(([k])=>!['period','days','note','totalDeclaredAllModules','totalPotentiallyMissed'].includes(k)).map(([mod,cv])=>`
+        <tr>
+          <td>${mod}</td>
+          <td class="tr">${fN(cv.declared)}</td>
+          <td class="tr">${cv.pages}</td>
+          <td class="tr">${cv.fetchedPages}</td>
+          <td class="tr" style="color:${cv.potentiallyMissed>0?'var(--re)':'var(--gr)'};font-weight:700">${cv.potentiallyMissed>0?'~'+fN(cv.potentiallyMissed):'✓ Complet'}</td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr style="font-weight:700;background:#f8fafc"><td>TOTAL</td><td class="tr">${fN(d.crossValidation?.totalDeclaredAllModules||0)}</td><td colspan="2"></td><td class="tr" style="color:${(d.crossValidation?.totalPotentiallyMissed||0)>0?'var(--re)':'var(--gr)'}">${(d.crossValidation?.totalPotentiallyMissed||0)>0?'~'+fN(d.crossValidation.totalPotentiallyMissed)+' manqués':'✓ Complet'}</td></tr></tfoot>
+      </table>
+    </div>
+
+    <div class="sec">✅ Contrôles réussis</div>
+    ${d.summary.ok.map(o=>`<div class="audit-card audit-ok" style="padding:8px 14px"><div class="audit-detail">✓ ${o}</div></div>`).join('')}`;
+}
+
+// ═══════════════════════════════ INTERACTIVE BR ═══════════════════════════════
+
+let ibrSlides=[], ibrIdx=0, ibrTyping=null, ibrAutoTimer=null, ibrAutoOn=true;
+let ibrChecked={};
+
+function openIBR(){
+  if(!S.data){alert('Lancez d\'abord une analyse.');return;}
+  const cfg=getBRCfg();
+  buildIBRSlides(S.data);
+  ibrIdx=0; ibrChecked={}; ibrEditMode=false;
+  document.getElementById('ibr').classList.add('on');
+  document.body.style.overflow='hidden';
+  // Apply saved accent
+  if(cfg.accentColor&&cfg.accentColor!=='#f97316') applyAccent(cfg.accentColor);
+  // Update client name badge
+  const badge=document.getElementById('ibr-client-badge');
+  if(badge&&cfg.clientName) badge.textContent=cfg.clientName;
+  // Edit mode off
+  document.getElementById('ibr')?.classList.remove('ibr-edit-mode');
+  const btn=document.getElementById('ibr-edit-toggle');
+  if(btn){btn.style.background='rgba(255,255,255,.08)';btn.style.color='rgba(255,255,255,.6)';}
+  showIBRSlide(0);
+}
+function closeIBR(){
+  document.getElementById('ibr').classList.remove('on');
+  document.body.style.overflow='';
+  clearTimeout(ibrAutoTimer);
+  clearInterval(ibrTyping);
+}
+function toggleIBRAuto(){
+  ibrAutoOn=!ibrAutoOn;
+  const btn=document.getElementById('ibr-auto-btn');
+  if(btn) btn.textContent=ibrAutoOn?'⏸ Pause':'▶ Auto';
+  if(ibrAutoOn) scheduleIBRAuto();
+  else clearTimeout(ibrAutoTimer);
+}
+function scheduleIBRAuto(){
+  clearTimeout(ibrAutoTimer);
+  if(!ibrAutoOn) return;
+  ibrAutoTimer=setTimeout(()=>{ if(ibrIdx<ibrSlides.length-1) ibrNav(1); },12000);
+}
+function ibrNav(dir){
+  ibrIdx=Math.max(0,Math.min(ibrSlides.length-1,ibrIdx+dir));
+  showIBRSlide(ibrIdx);
+}
+
+function ibrCountUp(elId, target, dur=1400){
+  const el=document.getElementById(elId); if(!el) return;
+  let cur=0; const step=Math.max(1,Math.ceil(target/(dur/16)));
+  const iv=setInterval(()=>{
+    cur=Math.min(cur+step,target);
+    el.textContent=cur.toLocaleString('fr');
+    if(cur>=target) clearInterval(iv);
+  },16);
+}
+
+function ibrTypeWriter(text, speed=55){
+  const el=document.getElementById('ibr-narrator'); if(!el) return;
+  el.textContent='';
+  const words=text.split(' '); let i=0;
+  clearInterval(ibrTyping);
+  ibrTyping=setInterval(()=>{
+    if(i<words.length){el.textContent+=(i>0?' ':'')+words[i++];}
+    else clearInterval(ibrTyping);
+  },speed);
+}
+
+function ibrGauge(score,size=160){
+  const s=Math.max(0,Math.min(100,score));
+  const col=s>=90?'#22c55e':s>=75?'#14b8a6':s>=60?'#f59e0b':s>=45?'#f97316':'#ef4444';
+  const r=size*.38,cx=size/2,cy=size*.56;
+  const a=(s/100)*Math.PI;
+  const x2=cx+r*Math.cos(Math.PI-a),y2=cy-r*Math.sin(Math.PI-a);
+  const large=a>Math.PI/2?1:0;
+  return`<svg width="${size}" height="${size*.58}" viewBox="0 0 ${size} ${size*.58}">
+    <path d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="${size*.1}" stroke-linecap="round"/>
+    ${s>0?`<path d="M ${cx-r} ${cy} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${size*.1}" stroke-linecap="round"/>`:''}
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="${size*.24}" font-weight="900" fill="${col}" font-family="Inter,sans-serif" id="ibr-score-text">0</text>
+    <text x="${cx}" y="${cy+size*.12}" text-anchor="middle" font-size="${size*.1}" fill="rgba(255,255,255,.4)" font-family="Inter,sans-serif">/100</text>
+  </svg>`;
+}
+
+function animateGauge(target,size=160,dur=1600){
+  const col=target>=90?'#22c55e':target>=75?'#14b8a6':target>=60?'#f59e0b':target>=45?'#f97316':'#ef4444';
+  let cur=0; const step=Math.max(1,Math.ceil(target/(dur/16)));
+  const iv=setInterval(()=>{
+    cur=Math.min(cur+step,target);
+    const el=document.getElementById('ibr-score-text'); if(el) el.textContent=cur;
+    const r=size*.38,cx=size/2,cy=size*.56;
+    const a=(cur/100)*Math.PI;
+    const x2=cx+r*Math.cos(Math.PI-a),y2=cy-r*Math.sin(Math.PI-a);
+    const large=a>Math.PI/2?1:0;
+    const path=document.getElementById('ibr-score-arc');
+    if(path&&cur>0) path.setAttribute('d',`M ${cx-r} ${cy} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`);
+    if(cur>=target) clearInterval(iv);
+  },16);
+}
+
+function buildIBRSlides(d){
+  const {groupScore:GS,groupLevelData:GL,restaurantStats:RS,anomalies,actionPlan:AP,period,moduleTotals} = d;
+  const rList=Object.values(RS).sort((a,b)=>b.complianceScore.score-a.complianceScore.score);
+  const totalAct=rList.reduce((s,r)=>s+r.overall.total,0);
+  const critAnom=anomalies.filter(a=>a.severity==='critical');
+  const p1=AP.filter(a=>a.priority==='P1');
+  const dates=period.allDates;
+  const bestR=rList[0], worstR=rList[rList.length-1];
+  const progR=rList.filter(r=>r.overall.halfTrend>0.1);
+  const modMaxVal=Math.max(...Object.values(moduleTotals).filter(v=>v>0),1);
+  const p1Impact=p1.reduce((s,a)=>{const m=parseInt((a.scoreImpact||'0').replace(/\D/g,''));return s+(isNaN(m)?0:m);},0);
+  const MODS_CRITICAL=['Températures frigos','Plans de nettoyage','Réceptions'];
+
+  ibrSlides=[
+    // 0 - INTRO
+    { id:'intro', section:'Introduction',
+      narrator:'Bienvenue dans votre Business Review HACCP. Dans les prochains instants, nous allons analyser ensemble les performances de conformité de votre groupe et définir les prochaines étapes.',
+      html:`<div style="text-align:center">
+        <div style="font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:4px">Octopus<span style="color:var(--or)">.</span>Intelligence</div>
+        <div class="ibr-title" style="font-size:3rem">Business Review<br><span style="color:var(--or)">HACCP & Conformité</span></div>
+        <div class="ibr-sub">Période : ${fD(dates[0])} → ${fD(dates[dates.length-1])} · ${d.restaurants.length} établissements</div>
+        <div style="margin-top:24px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
+          ${(()=>{
+          const cfg3=getBRCfg();
+          const kpis=cfg3.kpis||['actions','sites','days','alerts'];
+          const kpiDefs={
+            actions:`<div class="ibr-kpi"><div class="ibr-kpi-v" id="ibc-act">0</div><div class="ibr-kpi-l">Actions tracées</div></div>`,
+            sites:`<div class="ibr-kpi"><div class="ibr-kpi-v">${d.restaurants.length}</div><div class="ibr-kpi-l">Établissements</div></div>`,
+            days:`<div class="ibr-kpi"><div class="ibr-kpi-v">${period.n}</div><div class="ibr-kpi-l">Jours analysés</div></div>`,
+            alerts:`<div class="ibr-kpi"><div class="ibr-kpi-v">${anomalies.length}</div><div class="ibr-kpi-l">Alertes détectées</div></div>`,
+            modules:`<div class="ibr-kpi"><div class="ibr-kpi-v">${Object.values(d.moduleTotals).filter(v=>v>0).length}</div><div class="ibr-kpi-l">Modules actifs</div></div>`,
+            p1:`<div class="ibr-kpi"><div class="ibr-kpi-v">${p1.length}</div><div class="ibr-kpi-l">Actions P1</div></div>`,
+          };
+          return kpis.map(k=>kpiDefs[k]||'').join('');
+        })()}
+        </div>
+      </div>`,
+      onShow:()=>{ setTimeout(()=>ibrCountUp('ibc-act',totalAct),400); }
+    },
+    // 1 - SCORE
+    { id:'score', section:'Score groupe',
+      narrator:`Votre score de conformité groupe est de ${GS} sur 100 — niveau ${GL.label}. ${GS<50?'Ce score en zone critique indique des lacunes majeures. Des actions correctives immédiates sont indispensables pour réduire le risque lors d\'un contrôle sanitaire.':GS<75?'Ce score est en dessous du seuil conforme de 75. Des améliorations ciblées sont nécessaires sur les modules critiques.':'Votre groupe maintient un niveau de conformité satisfaisant. L\'objectif est de progresser vers l\'excellence.'}`,
+      html:`<div style="text-align:center">
+        <div class="ibr-eyebrow">Score de conformité groupe</div>
+        <div style="margin:0 auto;width:fit-content;position:relative">
+          ${ibrGauge(GS,180)}
+        </div>
+        <div style="display:inline-block;background:${GL.color}22;border:1px solid ${GL.color}44;border-radius:10px;padding:6px 20px;color:${GL.color};font-weight:900;font-size:1.1rem;margin-top:8px">${GL.label}</div>
+        <div style="margin-top:16px;max-width:480px;margin-left:auto;margin-right:auto">
+          <div style="font-size:.8rem;color:rgba(255,255,255,.5);display:flex;justify-content:space-between;margin-bottom:4px"><span>Critique</span><span>À risque</span><span>Vigilance</span><span>Conforme</span><span>Champion</span></div>
+          <div class="ibr-score-bar"><div class="ibr-score-fill" id="ibr-score-fill-bar" style="width:0%;background:${GL.color}"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:.72rem;color:rgba(255,255,255,.3);margin-top:3px"><span>0</span><span>45</span><span>60</span><span>75</span><span>100</span></div>
+        </div>
+      </div>`,
+      onShow:()=>{
+        setTimeout(()=>{
+          animateGauge(GS,180,1800);
+          const fill=document.getElementById('ibr-score-fill-bar');
+          if(fill) setTimeout(()=>{fill.style.width=GS+'%';},200);
+        },300);
+      }
+    },
+    // 2 - RESTAURANTS
+    { id:'restaurants', section:'Vos établissements',
+      narrator:`Voici l'état de vos ${rList.length} établissements. ${bestR?.name?.replace('ILIA - ','')} est votre référence avec ${bestR?.complianceScore?.score}/100. ${worstR&&worstR.complianceScore.score<50?worstR.name.replace('ILIA - ','')+' nécessite une attention prioritaire avec '+worstR.complianceScore.score+'/100.':''} ${progR.length>0?progR.length+' établissement(s) sont en progression — bonne dynamique à encourager.':''}`,
+      html:`<div>
+        <div class="ibr-eyebrow">Tableau de bord par site</div>
+        <div class="ibr-r-grid">
+          ${rList.map((r,i)=>{
+            const cs=r.complianceScore;
+            return`<div class="ibr-r-card" style="animation-delay:${i*150}ms;cursor:default">
+              <div class="ibr-r-name">${r.name.replace('ILIA - ','')}</div>
+              ${ibrGauge(cs.score,90)}
+              <span class="ibr-sig" style="background:${cs.color}22;color:${cs.color}">${cs.label}</span>
+              <div style="font-size:.7rem;color:rgba(255,255,255,.4);margin-top:6px">${trendSpan(r.overall.halfTrend)}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`,
+      onShow:()=>{
+        rList.forEach((_,i)=>{
+          setTimeout(()=>animateGauge(rList[i].complianceScore.score,90,1200),300+i*150);
+        });
+      }
+    },
+    // 3 - MODULES
+    { id:'modules', section:'Modules HACCP',
+      narrator:`Voici l'utilisation de vos 8 modules HACCP sur la période. ${Object.entries(moduleTotals).sort((a,b)=>b[1]-a[1])[0]?.[0]||''} est le module le plus utilisé. ${MODS_CRITICAL.filter(m=>!moduleTotals[m]).map(m=>'"'+m+'"').join(', ')||''}${MODS_CRITICAL.filter(m=>!moduleTotals[m]).length>0?' : ces modules critiques n\'ont aucun enregistrement — non-conformité réglementaire directe.':'Tous les modules critiques sont actifs.'}`,
+      html:`<div>
+        <div class="ibr-eyebrow">Utilisation des modules</div>
+        <div class="ibr-mod-bars">
+          ${Object.keys(S.data.moduleTotals).map((mod,i)=>{
+            const val=moduleTotals[mod]||0;
+            const isCrit=MODS_CRITICAL.includes(mod);
+            const col=val===0&&isCrit?'#ef4444':val===0?'rgba(255,255,255,.2)':MCOLS[Object.keys(S.data.moduleTotals).indexOf(mod)%MCOLS.length];
+            const pct2=Math.round(val/modMaxVal*100);
+            const rs0=rList[0]?.modules[mod];
+            const label=val===0?'0 — Non utilisé':rs0?.metric==='pct'?Math.round((rList.reduce((s,r)=>s+(r.modules[mod]?.coverage||0),0)/rList.length)*100)+'% couverture':fN(val)+' opérations';
+            return`<div class="ibr-mod-bar-row" style="animation-delay:${i*80}ms">
+              <div class="ibr-mod-name">${mod.replace('Températures ','T. ').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.')}${isCrit?'<span style="color:var(--re);margin-left:4px">●</span>':''}</div>
+              <div class="ibr-mod-track"><div class="ibr-mod-fill ibr-fill-${i}" style="background:${col}" data-pct="${pct2}"></div></div>
+              <div class="ibr-mod-val" style="color:${val===0&&isCrit?'var(--re)':'rgba(255,255,255,.8)'}">${label}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="margin-top:10px;font-size:.72rem;color:rgba(255,255,255,.4)">● Module critique HACCP obligatoire</div>
+      </div>`,
+      onShow:()=>{
+        setTimeout(()=>{
+          document.querySelectorAll('.ibr-mod-fill').forEach(el=>{
+            const pct2=el.dataset.pct;
+            setTimeout(()=>{el.style.width=pct2+'%';},100);
+          });
+        },400);
+      }
+    },
+    // 4 - ANOMALIES
+    { id:'signals', section:'Signaux détectés',
+      narrator:`Nous avons identifié ${anomalies.length} signaux d'alerte sur la période, dont ${critAnom.length} critiques. ${critAnom[0]?'Signal le plus urgent : '+critAnom[0].title+' — '+critAnom[0].action:''} Chaque anomalie représente un risque de non-conformité lors d'un contrôle DDPP.`,
+      html:`<div>
+        <div class="ibr-eyebrow">Signaux détectés — ${anomalies.length} alertes</div>
+        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+          <span style="background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:4px 14px;border-radius:8px;font-weight:700;font-size:.82rem">🔴 ${critAnom.length} critiques</span>
+          <span style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fbbf24;padding:4px 14px;border-radius:8px;font-weight:700;font-size:.82rem">🟡 ${anomalies.filter(a=>a.severity==='high').length} importantes</span>
+          <span style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;padding:4px 14px;border-radius:8px;font-weight:700;font-size:.82rem">🔵 ${anomalies.filter(a=>a.severity==='medium').length} à surveiller</span>
+        </div>
+        <div class="ibr-anom-list">
+          ${[...critAnom,...anomalies.filter(a=>a.severity==='high'),...anomalies.filter(a=>a.severity==='medium')].slice(0,6).map((a,i)=>`
+          <div class="ibr-anom ${a.severity}" style="animation-delay:${i*100}ms">
+            <div style="font-size:1.1rem;flex-shrink:0">${a.icon}</div>
+            <div>
+              <div class="ibr-anom-t">${a.title} <span style="font-size:.72rem;opacity:.6">— ${a.restaurant.replace('ILIA - ','')}</span></div>
+              <div class="ibr-anom-d">${a.desc}</div>
+              ${a.action?`<div style="font-size:.72rem;color:rgba(59,130,246,.9);margin-top:3px">💡 ${a.action}</div>`:''}
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`
+    },
+    // 5 - PLAN D'ACTION INTERACTIF
+    { id:'actions', section:'Plan d\'action',
+      narrator:`Voici les ${p1.length} actions prioritaires à mettre en place cette semaine. En réalisant toutes ces actions, votre score peut progresser de +${p1Impact} points. Cochez les actions que vous vous engagez à réaliser.`,
+      html:`<div>
+        <div class="ibr-eyebrow">Actions P1 — À réaliser cette semaine</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="font-size:.85rem;color:rgba(255,255,255,.6)">Impact total si toutes réalisées : <strong style="color:var(--or)">+${p1Impact} pts</strong></div>
+          <div style="font-size:.82rem;color:rgba(255,255,255,.6)">Nouveau score estimé : <strong style="color:var(--gr)">${Math.min(100, getBRCfg().targetScore || Math.min(100,GS+p1Impact))}/100</strong></div>
+        </div>
+        <div class="ibr-action-list">
+          ${p1.map((a,i)=>`
+          <div class="ibr-action ${ibrChecked['a'+i]?'checked':''}" id="ibr-action-${i}" style="animation-delay:${i*80}ms" onclick="toggleIBRAction(${i})">
+            <input type="checkbox" ${ibrChecked['a'+i]?'checked':''} onclick="event.stopPropagation();toggleIBRAction(${i})"/>
+            <div>
+              <div class="ibr-action-t">${a.title} <span style="color:var(--gr);font-size:.75rem;font-weight:700">${a.scoreImpact}</span></div>
+              <div class="ibr-action-s">${a.site.replace('ILIA - ','')} · ${a.module||''} · ${a.effort} · ${a.deadline}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+        <div style="margin-top:12px;text-align:center">
+          <span id="ibr-checked-count" style="font-size:.82rem;color:rgba(255,255,255,.6)">0/${p1.length} actions cochées</span>
+        </div>
+      </div>`
+    },
+    // 6 - OBJECTIFS
+    { id:'objectives', section:'Objectifs',
+      narrator:`En réalisant les actions P1 cette semaine, votre score peut atteindre ${Math.min(100,GS+p1Impact)} sur 100. L'objectif à 3 mois est de franchir le seuil conforme à 75 points. Chaque module critique activé représente un gain de 15 points.`,
+      html:`<div style="text-align:center">
+        <div class="ibr-eyebrow">Trajectoire de conformité</div>
+        <div style="max-width:600px;margin:0 auto">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+            <div class="ibr-kpi"><div class="ibr-kpi-v" style="color:#ef4444">${GS}</div><div class="ibr-kpi-l">Score actuel</div></div>
+            <div style="font-size:2rem;color:rgba(255,255,255,.3);align-self:center">→</div>
+            <div class="ibr-kpi"><div class="ibr-kpi-v" style="color:var(--or)">${Math.min(100,GS+p1Impact)}</div><div class="ibr-kpi-l">Après actions P1</div></div>
+            <div style="font-size:2rem;color:rgba(255,255,255,.3);align-self:center">→</div>
+            <div class="ibr-kpi"><div class="ibr-kpi-v" style="color:var(--gr)">75</div><div class="ibr-kpi-l">Objectif Conforme</div></div>
+          </div>
+          <div style="position:relative;margin:20px 0">
+            <div style="height:24px;background:rgba(255,255,255,.08);border-radius:12px;overflow:visible;position:relative">
+              <div id="ibr-prog-bar" style="height:100%;border-radius:12px;background:linear-gradient(90deg,#ef4444,var(--or),var(--gr));transition:width 1.8s ease;width:0%"></div>
+              <div style="position:absolute;top:-22px;left:75%;transform:translateX(-50%);font-size:.7rem;color:rgba(255,255,255,.5)">Conforme ▼</div>
+              <div style="position:absolute;top:0;bottom:0;left:75%;width:2px;background:rgba(255,255,255,.3)"></div>
+            </div>
+          </div>
+          <div class="ibr-reco-list" style="text-align:left;margin-top:12px">
+            ${[
+              {n:1,col:'#ef4444',t:'Cette semaine',s:`Réaliser les ${p1.length} actions P1 → +${p1Impact} pts`,dl:`Score: ${Math.min(100,GS+p1Impact)}/100`},
+              {n:2,col:'#f59e0b',t:'Ce mois',s:`Visites terrain + formation équipes → +15 pts`,dl:`Score: ${Math.min(100,GS+p1Impact+15)}/100`},
+              {n:3,col:'#22c55e',t:'Objectif 3 mois',s:`Score groupe ≥ 75/100 — niveau CONFORME`,dl:`Tous modules critiques actifs`},
+            ].map((step,i)=>`
+            <div class="ibr-reco-item" style="animation-delay:${i*200}ms">
+              <div class="ibr-reco-n" style="background:${step.col}22;color:${step.col}">${step.n}</div>
+              <div><div class="ibr-reco-t">${step.t}</div><div class="ibr-reco-s">${step.s} · <span style="color:${step.col};font-weight:700">${step.dl}</span></div></div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>`,
+      onShow:()=>{
+        setTimeout(()=>{
+          const bar=document.getElementById('ibr-prog-bar');
+          if(bar) bar.style.width=GS+'%';
+        },400);
+      }
+    },
+    // 7 - PROCHAINES ÉTAPES
+    { id:'roadmap', section:'Prochaines étapes',
+      narrator:`Voici les prochaines étapes pour améliorer votre conformité. De votre côté, les actions prioritaires sont l'activation des modules critiques et la saisie quotidienne. De notre côté, nous allons vous accompagner avec des visites terrain et des sessions de formation.`,
+      html:`<div>
+        <div class="ibr-eyebrow">Plan de route</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:.75rem;font-weight:800;color:var(--or);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">🏠 Engagements client</div>
+            <div class="ibr-timeline">
+              ${[
+                {t:'Activer le module Réceptions',s:'Sur tous les établissements',dl:'Cette semaine',col:'#ef4444'},
+                {t:'Saisie températures frigos 2x/jour',s:'Matin + fin de service, 7j/7',dl:'Immédiat',col:'#ef4444'},
+                {t:'Nommer un référent qualité / site',s:'Responsable saisies Octopus',dl:'Dans 1 semaine',col:'#f59e0b'},
+                {t:'Maintenir traçabilité le week-end',s:'HACCP s\'applique 7j/7',dl:'Ce week-end',col:'#f97316'},
+                {t:'Viser ${Math.min(100,GS+20)}/100 au prochain bilan',s:'Via activation modules + régularité',dl:'Prochain bilan',col:'#22c55e'},
+              ].map((item,i)=>`
+              <div class="ibr-tl-item" style="animation-delay:${i*120}ms">
+                <div class="ibr-tl-line">
+                  <div class="ibr-tl-dot" style="background:${item.col}"></div>
+                  ${i<4?`<div class="ibr-tl-line-v"></div>`:''}
+                </div>
+                <div class="ibr-tl-body">
+                  <div class="ibr-tl-title">${item.t}</div>
+                  <div class="ibr-tl-sub">${item.s}</div>
+                  <span class="ibr-tl-dl" style="background:${item.col}22;color:${item.col}">${item.dl}</span>
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:.75rem;font-weight:800;color:var(--bl);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">👤 Engagements Octopus CSM</div>
+            <div class="ibr-timeline">
+              ${[
+                {t:'Email plan d\'action aux responsables',s:'Récapitulatif personnalisé par site',dl:'Aujourd\'hui',col:'#ef4444'},
+                {t:'Rapport CODIR envoyé',s:'Bilan qualité à la direction',dl:'Cette semaine',col:'#f59e0b'},
+                {t:'Visites terrain sites prioritaires',s:`${rList.filter(r=>r.complianceScore.score<50).slice(0,2).map(r=>r.name.replace('ILIA - ','')).join(' & ')||'Sites critiques'}`,dl:'Dans 2 semaines',col:'#f97316'},
+                {t:'Formation équipes — saisie temps réel',s:'Protocole HACCP + Octopus',dl:'Dans 3 semaines',col:'#3b82f6'},
+                {t:'Business Review trimestrielle',s:'Bilan et nouveaux objectifs',dl:'Dans 45 jours',col:'#14b8a6'},
+              ].map((item,i)=>`
+              <div class="ibr-tl-item" style="animation-delay:${200+i*120}ms">
+                <div class="ibr-tl-line">
+                  <div class="ibr-tl-dot" style="background:${item.col}"></div>
+                  ${i<4?`<div class="ibr-tl-line-v"></div>`:''}
+                </div>
+                <div class="ibr-tl-body">
+                  <div class="ibr-tl-title">${item.t}</div>
+                  <div class="ibr-tl-sub">${item.s}</div>
+                  <span class="ibr-tl-dl" style="background:${item.col}22;color:${item.col}">${item.dl}</span>
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`
+    },
+    // 8 - CONCLUSION
+    { id:'conclusion', section:'Conclusion',
+      narrator:`Merci pour cette Business Review. En résumé : votre score groupe est de ${GS} sur 100, ${anomalies.length} alertes ont été identifiées, et ${p1.length} actions prioritaires sont à traiter cette semaine. Votre équipe Octopus HACCP reste disponible pour vous accompagner. À bientôt pour votre prochaine revue !`,
+      html:`<div style="text-align:center">
+        <div style="font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:4px">Octopus<span style="color:var(--or)">.</span>Intelligence</div>
+        <div class="ibr-title" style="font-size:2.4rem">Merci pour cette<br><span style="color:var(--or)">Business Review</span></div>
+        <div style="margin:20px auto;max-width:500px;background:rgba(255,255,255,.07);border-radius:12px;padding:18px 24px">
+          <div style="font-size:.78rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Récapitulatif</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            ${[
+              {l:'Score actuel',v:GS+'/100',c:GL.color},
+              {l:'Objectif',v:Math.min(100,GS+p1Impact)+'/100',c:'var(--or)'},
+              {l:'Alertes',v:anomalies.length,c:critAnom.length>0?'var(--re)':'var(--gr)'},
+              {l:'Actions P1',v:p1.length,c:'var(--am)'},
+            ].map(i=>`<div style="background:rgba(255,255,255,.06);border-radius:8px;padding:10px"><div style="font-size:1.4rem;font-weight:900;color:${i.c}">${i.v}</div><div style="font-size:.68rem;color:rgba(255,255,255,.4);text-transform:uppercase;margin-top:2px">${i.l}</div></div>`).join('')}
+          </div>
+        </div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.5)">📧 support@octopus-haccp.com · 🌐 octopus-haccp.com</div>
+        <div style="margin-top:12px;font-size:.78rem;color:rgba(255,255,255,.3)">Prochaine revue recommandée : dans 30 jours</div>
+      </div>`
+    },
+  ];
+  // Filter slides by config
+  const cfg4=getBRCfg();
+  if(cfg4.visibleSlides&&cfg4.visibleSlides.length>0){
+    ibrSlides=ibrSlides.filter(sl=>cfg4.visibleSlides.includes(sl.id));
+  }
+  // Add CSM name to intro narrator if set
+  if(cfg4.csmName&&ibrSlides[0]){
+    ibrSlides[0].narrator='Bonjour, je suis '+cfg4.csmName+', votre Customer Success Manager Octopus. '+ibrSlides[0].narrator;
+  }
+}
+
+function showIBRSlide(idx){
+  const sl=ibrSlides[idx]; if(!sl) return;
+  clearInterval(ibrTyping); clearTimeout(ibrAutoTimer);
+
+  // Progress bar
+  const fill=document.getElementById('ibr-progress-fill');
+  if(fill) fill.style.width=((idx+1)/ibrSlides.length*100)+'%';
+
+  // Dots
+  const dotsEl=document.getElementById('ibr-dots');
+  if(dotsEl){
+    dotsEl.innerHTML=ibrSlides.map((_,i)=>`<div class="ibr-dot ${i===idx?'cur':i<idx?'done':''}"></div>`).join('');
+  }
+
+  // Label
+  const labelEl=document.getElementById('ibr-slide-label');
+  if(labelEl) labelEl.textContent=`${idx+1} / ${ibrSlides.length} — ${sl.section}`;
+
+  // Nav
+  const prev=document.getElementById('ibr-prev'), next=document.getElementById('ibr-next');
+  if(prev) prev.disabled=idx===0;
+  if(next){
+    next.textContent=idx===ibrSlides.length-1?'✓ Terminer':'Suivant →';
+    next.onclick=idx===ibrSlides.length-1?()=>closeIBR():()=>ibrNav(1);
+  }
+
+  // Content
+  const contentEl=document.getElementById('ibr-slide');
+  if(contentEl){ contentEl.style.animation='none'; contentEl.offsetHeight; contentEl.style.animation=''; contentEl.innerHTML=sl.html; }
+
+  // Narrator
+  // Use custom narrator if set, else default
+  const cfg2=getBRCfg();
+  const narratorText=(cfg2.customNarrators?.[sl.id])||sl.narrator;
+  if(ibrEditMode){
+    const nar=document.getElementById('ibr-narrator');
+    if(nar){nar.textContent=narratorText;nar.contentEditable='true';}
+  } else {
+    setTimeout(()=>ibrTypeWriter(narratorText,60),300);
+  }
+  // Update config panel note if open
+  const noteEl=document.getElementById('cfg-slide-note');
+  if(noteEl) noteEl.value=cfg2.customNarrators?.[sl.id]||'';
+
+  // onShow callback
+  if(sl.onShow) setTimeout(sl.onShow,200);
+
+  // Auto-advance
+  if(ibrAutoOn) scheduleIBRAuto();
+
+  // Update checked count if actions slide
+  if(sl.id==='actions') updateIBRChecked();
+}
+
+function toggleIBRAction(i){
+  ibrChecked['a'+i]=!ibrChecked['a'+i];
+  const el=document.getElementById('ibr-action-'+i);
+  if(el){ el.classList.toggle('checked',ibrChecked['a'+i]); const cb=el.querySelector('input[type=checkbox]'); if(cb) cb.checked=ibrChecked['a'+i]; }
+  updateIBRChecked();
+}
+function updateIBRChecked(){
+  const count=Object.values(ibrChecked).filter(Boolean).length;
+  const p1=S.data?.actionPlan?.filter(a=>a.priority==='P1')||[];
+  const el=document.getElementById('ibr-checked-count');
+  if(el) el.textContent=`${count}/${p1.length} actions cochées — Impact cumulé : +${p1.slice(0,count).reduce((s,a)=>{const m=parseInt((a.scoreImpact||'0').replace(/\D/g,''));return s+(isNaN(m)?0:m);},0)} pts`;
+}
+
+// Touch swipe for IBR
+let ibrTx=0;
+document.addEventListener('touchstart',e=>{if(document.getElementById('ibr')?.classList.contains('on'))ibrTx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!document.getElementById('ibr')?.classList.contains('on'))return;
+  const diff=ibrTx-e.changedTouches[0].clientX;
+  if(Math.abs(diff)>50)ibrNav(diff>0?1:-1);
+},{passive:true});
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('ibr')?.classList?.contains('on')){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown') ibrNav(1);
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp') ibrNav(-1);
+    else if(e.key==='Escape') closeIBR();
+    else if(e.key===' '){e.preventDefault();toggleIBRAuto();}
+  }
+});
+
+// ═══════════════════════════════ IBR CONFIG ══════════════════════════════════
+
+const IBR_CFG_KEY = 'ibr_config_v2';
+let ibrEditMode = false;
+const IBR_DEFAULT = {
+  clientName:'', clientSubtitle:'', csmName:'',
+  targetScore: 75,
+  kpis: ['actions','sites','days','alerts'],
+  visibleSlides: ['intro','score','restaurants','modules','signals','actions','objectives','roadmap','conclusion'],
+  slideNotes: {}, customNarrators: {},
+  accentColor: '#f97316',
+};
+
+function getBRCfg(){ try{return{...IBR_DEFAULT,...JSON.parse(localStorage.getItem(IBR_CFG_KEY)||'{}')}}catch{return{...IBR_DEFAULT};} }
+function saveBRCfg(cfg){ localStorage.setItem(IBR_CFG_KEY,JSON.stringify(cfg)); }
+
+function loadConfigPanel(){
+  const cfg=getBRCfg();
+  const f=id=>document.getElementById(id);
+  if(f('cfg-client-name'))f('cfg-client-name').value=cfg.clientName||'';
+  if(f('cfg-client-subtitle'))f('cfg-client-subtitle').value=cfg.clientSubtitle||'';
+  if(f('cfg-csm-name'))f('cfg-csm-name').value=cfg.csmName||'';
+  if(f('cfg-target'))f('cfg-target').value=cfg.targetScore||75;
+  ['actions','sites','days','alerts','modules','p1'].forEach(k=>{
+    const el=f('cfg-kpi-'+k); if(el) el.checked=(cfg.kpis||[]).includes(k);
+  });
+  document.querySelectorAll('.slide-toggle').forEach(cb=>{
+    cb.checked=(cfg.visibleSlides||[]).includes(cb.dataset.slide);
+  });
+  // Load note for current slide
+  const noteEl=f('cfg-slide-note');
+  if(noteEl && ibrSlides[ibrIdx]){
+    noteEl.value=cfg.customNarrators?.[ibrSlides[ibrIdx].id]||'';
+  }
+}
+
+function toggleIBRConfig(){
+  const panel=document.getElementById('ibr-cfg-panel');
+  if(!panel)return;
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open')) loadConfigPanel();
+}
+
+function saveSlideNote(){
+  const cfg=getBRCfg();
+  const note=document.getElementById('cfg-slide-note')?.value||'';
+  const slId=ibrSlides[ibrIdx]?.id;
+  if(slId){
+    if(!cfg.customNarrators)cfg.customNarrators={};
+    cfg.customNarrators[slId]=note;
+    saveBRCfg(cfg);
+    // Apply immediately to narrator
+    if(note){ clearInterval(ibrTyping); const el=document.getElementById('ibr-narrator'); if(el)el.textContent=note; }
+  }
+  const btn=document.querySelector('.cfg-btn');
+  if(btn){btn.textContent='✓ Appliqué !';setTimeout(()=>{btn.textContent='💾 Appliquer cette note';},1500);}
+}
+
+function applyBRConfig(){
+  const f=id=>document.getElementById(id);
+  const cfg=getBRCfg();
+  cfg.clientName=f('cfg-client-name')?.value||'';
+  cfg.clientSubtitle=f('cfg-client-subtitle')?.value||'';
+  cfg.csmName=f('cfg-csm-name')?.value||'';
+  cfg.targetScore=parseInt(f('cfg-target')?.value)||75;
+  cfg.kpis=['actions','sites','days','alerts','modules','p1'].filter(k=>f('cfg-kpi-'+k)?.checked);
+  cfg.visibleSlides=[...document.querySelectorAll('.slide-toggle:checked')].map(cb=>cb.dataset.slide);
+  saveBRCfg(cfg);
+  // Update client badge
+  const badge=document.getElementById('ibr-client-badge');
+  if(badge&&cfg.clientName) badge.textContent=cfg.clientName;
+  // Apply accent color
+  if(cfg.accentColor) applyAccent(cfg.accentColor);
+  // Rebuild slides
+  if(S.data){ buildIBRSlides(S.data); ibrIdx=Math.min(ibrIdx,ibrSlides.length-1); showIBRSlide(ibrIdx); }
+  toggleIBRConfig();
+}
+
+function resetBRConfig(){
+  localStorage.removeItem(IBR_CFG_KEY);
+  loadConfigPanel();
+  if(S.data){ buildIBRSlides(S.data); showIBRSlide(0); }
+}
+
+function exportBRConfig(){
+  const cfg=getBRCfg();
+  navigator.clipboard?.writeText(JSON.stringify(cfg,null,2)).catch(()=>{});
+  alert('Configuration copiée dans le presse-papiers');
+}
+
+function setAccent(color){
+  const cfg=getBRCfg(); cfg.accentColor=color; saveBRCfg(cfg); applyAccent(color);
+  // Highlight selected
+  document.querySelectorAll('#ibr-cfg-panel [onclick*="setAccent"]').forEach(el=>{
+    el.style.borderWidth=el.getAttribute('onclick').includes(color)?'3px':'2px';
+    el.style.borderColor=el.getAttribute('onclick').includes(color)?'#fff':'rgba(255,255,255,.3)';
+  });
+}
+
+function applyAccent(color){
+  document.documentElement.style.setProperty('--ibr-accent', color);
+  const fills=document.querySelectorAll('#ibr-progress-fill,.ibr-btn.primary');
+  fills.forEach(el=>el.style.background=color);
+}
+
+function toggleIBREditMode(){
+  ibrEditMode=!ibrEditMode;
+  const ibr=document.getElementById('ibr');
+  const btn=document.getElementById('ibr-edit-toggle');
+  if(!ibr||!btn)return;
+  if(ibrEditMode){
+    ibr.classList.add('ibr-edit-mode');
+    btn.style.background='rgba(249,115,22,.3)';
+    btn.style.color='var(--or)';
+    btn.title='Quitter le mode édition';
+    // Make narrator editable
+    const nar=document.getElementById('ibr-narrator');
+    if(nar){
+      nar.contentEditable='true';
+      nar.title='Cliquez pour modifier le texte narrateur';
+      nar.addEventListener('blur',saveNarratorEdit);
+    }
+    // Stop auto-advance in edit mode
+    if(ibrAutoOn){ ibrAutoOn=false; clearTimeout(ibrAutoTimer); const ab=document.getElementById('ibr-auto-btn'); if(ab)ab.textContent='▶'; }
+  } else {
+    ibr.classList.remove('ibr-edit-mode');
+    btn.style.background='rgba(255,255,255,.08)';
+    btn.style.color='rgba(255,255,255,.6)';
+    btn.title='Mode édition CSM';
+    const nar=document.getElementById('ibr-narrator');
+    if(nar){ nar.contentEditable='false'; nar.removeEventListener('blur',saveNarratorEdit); }
+  }
+}
+
+function saveNarratorEdit(){
+  const cfg=getBRCfg();
+  const nar=document.getElementById('ibr-narrator');
+  const slId=ibrSlides[ibrIdx]?.id;
+  if(!nar||!slId)return;
+  if(!cfg.customNarrators)cfg.customNarrators={};
+  cfg.customNarrators[slId]=nar.textContent;
+  saveBRCfg(cfg);
+  // Also update the slide note in panel
+  const noteEl=document.getElementById('cfg-slide-note');
+  if(noteEl) noteEl.value=nar.textContent;
+}
+
+// ═══════════════════════════════ INIT ═════════════════════════════════════════
+renderPbar();
+fetch('/proxy/restaurants').then(r=>r.json()).then(()=>{ $('dot').className='dot ok'; $('conn').textContent='Connecté'; }).catch(()=>{ $('dot').className='dot err'; $('conn').textContent='Erreur'; });
+</script>
+</body>
+</html>
