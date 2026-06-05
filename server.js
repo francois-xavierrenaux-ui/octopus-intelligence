@@ -29,28 +29,39 @@ async function apiGet(ep, params = {}) {
   const r = await fetch(`${BASE_URL}/api/${ep}${q ? '?' + q : ''}`, { headers: { token: tok } });
   return r.json();
 }
+// In-memory cache to avoid reloading identical requests (key: ep+params, ttl: 10min)
+const _cache = new Map();
+function cacheGet(key) {
+  const e = _cache.get(key);
+  if (!e) return null;
+  if (Date.now() - e.ts > 10 * 60 * 1000) { _cache.delete(key); return null; }
+  return e.data;
+}
+function cacheSet(key, data) { _cache.set(key, { data, ts: Date.now() }); }
+
 async function fetchAll(ep, params = {}) {
-  // Use per_page=500 to reduce pages needed (5542 cleaning tasks / 500 = 12 pages vs 111)
+  const cacheKey = ep + JSON.stringify(params);
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
+
+  // Use per_page=500 to reduce pages — all pages fetched in parallel for speed
   const PER_PAGE = 500;
-  const MAX_PAGES = 60; // max 30,000 items per module per period
+  const MAX_PAGES = 10; // max 5000 items per module (sufficient for 30-day periods)
   const first = await apiGet(ep, { ...params, page: 1, per_page: PER_PAGE });
   const items = first.data || (Array.isArray(first) ? first : []);
-  if (!first.last_page || first.last_page <= 1) return items;
+  if (!first.last_page || first.last_page <= 1) { cacheSet(cacheKey, items); return items; }
 
   const totalPages = Math.min(first.last_page, MAX_PAGES);
-  if (totalPages <= 1) return items;
+  if (totalPages <= 1) { cacheSet(cacheKey, items); return items; }
 
-  // Fetch remaining pages in parallel batches of 10
-  const remaining = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-  const BATCH = 10;
-  let allItems = [...items];
-  for (let b = 0; b < remaining.length; b += BATCH) {
-    const batch = remaining.slice(b, b + BATCH);
-    const results = await Promise.all(
-      batch.map(p => apiGet(ep, { ...params, page: p, per_page: PER_PAGE }))
-    );
-    allItems = allItems.concat(results.flatMap(r => r.data || []));
-  }
+  // Fetch ALL remaining pages in parallel (no batching — maximise speed)
+  const results = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, i) =>
+      apiGet(ep, { ...params, page: i + 2, per_page: PER_PAGE })
+    )
+  );
+  const allItems = items.concat(results.flatMap(r => r.data || []));
+  cacheSet(cacheKey, allItems);
   return allItems;
 }
 
