@@ -589,6 +589,87 @@ td{padding:8px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 .db-zone-colors{display:flex;gap:5px;margin-bottom:8px;}
 .db-zc{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s;}
 .db-zc.sel{border-color:var(--txt);}
+
+/* ─── FUTURISTIC DASHBOARD THEME ─────────────────────── */
+.db-dark{background:#060d1a;padding:16px;border-radius:var(--r);
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px;}
+.db-dark .db-widget{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(12px);color:#e2e8f0;}
+.db-dark .db-wh{border-bottom-color:rgba(255,255,255,.07);}
+.db-dark .db-wh-title{color:rgba(255,255,255,.85);}
+.db-dark .db-wa-btn{color:rgba(255,255,255,.3);}
+.db-dark .db-wa-btn:hover{background:rgba(255,255,255,.08);color:var(--or);}
+
+/* Neon glow colors */
+.neon-or{color:#f97316;text-shadow:0 0 12px rgba(249,115,22,.7);}
+.neon-cy{color:#06b6d4;text-shadow:0 0 12px rgba(6,182,212,.7);}
+.neon-pu{color:#8b5cf6;text-shadow:0 0 12px rgba(139,92,246,.7);}
+.neon-gr{color:#10b981;text-shadow:0 0 12px rgba(16,185,129,.7);}
+.neon-re{color:#f43f5e;text-shadow:0 0 12px rgba(244,63,94,.7);}
+
+/* Ring animation */
+@keyframes ring-draw{from{stroke-dashoffset:var(--db-circ,326);}to{stroke-dashoffset:var(--db-off,0);}}
+@keyframes db-fade-up{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+@keyframes db-count-pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+@keyframes db-bar-grow{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+@keyframes db-pulse-ring{0%{transform:scale(1);opacity:.6;}100%{transform:scale(1.6);opacity:0;}}
+@keyframes db-scan{0%{transform:translateY(-100%);}100%{transform:translateY(500%);}}
+@keyframes db-shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+@keyframes db-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+.db-widget-anim{animation:db-fade-up .4s ease forwards;}
+.db-widget-anim:nth-child(2){animation-delay:.05s;opacity:0;}
+.db-widget-anim:nth-child(3){animation-delay:.1s;opacity:0;}
+.db-widget-anim:nth-child(4){animation-delay:.15s;opacity:0;}
+.db-widget-anim:nth-child(5){animation-delay:.2s;opacity:0;}
+.db-widget-anim:nth-child(6){animation-delay:.25s;opacity:0;}
+.db-widget-anim:nth-child(7){animation-delay:.3s;opacity:0;}
+.db-widget-anim:nth-child(8){animation-delay:.35s;opacity:0;}
+.db-widget-anim:nth-child(9){animation-delay:.4s;opacity:0;}
+
+/* Glassmorphism KPI */
+.db-kpi-glass{padding:18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+.db-kpi-glass::before{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;border-radius:50%;background:var(--db-kpi-color,#f97316);opacity:.08;filter:blur(20px);}
+.db-kpi-glass .db-kpi-icon{font-size:1.2rem;opacity:.6;}
+.db-kpi-glass .db-kpi-num{font-size:2.2rem;font-weight:900;letter-spacing:-1px;line-height:1;}
+.db-kpi-glass .db-kpi-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;opacity:.45;}
+.db-kpi-glass .db-kpi-sub{font-size:.72rem;opacity:.5;margin-top:2px;}
+
+/* Bubble matrix */
+.db-bubble-cell{display:flex;align-items:center;justify-content:center;height:48px;transition:transform .2s;}
+.db-bubble-cell:hover .db-bubble{transform:scale(1.3);opacity:1!important;}
+.db-bubble{border-radius:50%;transition:all .3s;cursor:pointer;}
+
+/* Scan line effect */
+.db-scan-wrap{position:relative;overflow:hidden;}
+.db-scan-wrap::after{content:'';position:absolute;left:0;right:0;height:40px;background:linear-gradient(transparent,rgba(249,115,22,.06),transparent);animation:db-scan 4s linear infinite;pointer-events:none;}
+
+/* Activity feed */
+.db-feed-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);animation:db-fade-up .3s ease;}
+.db-feed-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;position:relative;}
+.db-feed-dot::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:inherit;animation:db-pulse-ring 1.5s ease-out infinite;}
+
+/* Neon bar */
+.db-nbar-wrap{display:flex;align-items:flex-end;gap:4px;height:180px;padding:8px 12px 24px;}
+.db-nbar{flex:1;border-radius:4px 4px 0 0;position:relative;transform-origin:bottom;transition:height .8s cubic-bezier(.34,1.56,.64,1);}
+.db-nbar::after{content:'';position:absolute;inset:0;border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(255,255,255,.15),transparent);}
+.db-nbar:hover{filter:brightness(1.3);}
+.db-nbar-lbl{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:.6rem;white-space:nowrap;color:rgba(255,255,255,.4);}
+
+/* Heatgrid */
+.db-heatgrid{display:grid;gap:3px;padding:8px;}
+.db-heatgrid-cell{border-radius:4px;transition:all .2s;cursor:pointer;}
+.db-heatgrid-cell:hover{transform:scale(1.1);z-index:2;position:relative;}
+
+/* Theme toggle */
+.db-theme-btn{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:6px;padding:3px 10px;font-size:.68rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.db-theme-btn:hover,.db-theme-btn.on{background:rgba(249,115,22,.15);border-color:rgba(249,115,22,.4);color:var(--or);}
+
+/* Gallery cards dark variant */
+.db-card-dark{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#e2e8f0;}
+.db-card-dark .db-card-desc{color:rgba(255,255,255,.45);}
+.db-card-dark:hover{border-color:rgba(249,115,22,.5);box-shadow:0 0 20px rgba(249,115,22,.1);}
+.db-card-dark .db-tag{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);}
 </style>
 </head>
 <body>
@@ -3060,8 +3141,28 @@ const DB_PRESETS = {
       {id:'w5',type:'alerts-list',title:'Toutes les Alertes',span:'6'},
       {id:'w6',type:'risk-matrix',title:'Matrice Risque',span:'6'},
     ]},
+  futuriste:{id:'futuriste',name:'🌌 Futuriste',desc:'Design dark glassmorphism avec animations néon',builtin:true,cmp:false,theme:'dark',
+    widgets:[
+      {id:'w1',type:'ring-score',title:'Score Conformité',span:'4'},
+      {id:'w2',type:'kpi-glow',title:'Actions Tracées',metric:'total',span:'4'},
+      {id:'w3',type:'kpi-glow',title:'Alertes Critiques',metric:'crit',span:'4'},
+      {id:'w4',type:'timeline',title:'Classement des Sites',span:'6'},
+      {id:'w5',type:'bubble-matrix',title:'Matrice d\'Adoption Modules',span:'6'},
+      {id:'w6',type:'bars-neon',title:'Activité Récente',span:'6'},
+      {id:'w7',type:'heat-grid',title:'Calendrier d\'Activité',span:'6'},
+      {id:'w8',type:'activity-feed',title:'Signaux Détectés',span:'6'},
+      {id:'w9',type:'radar-sites',title:'Radar Multi-Sites',span:'6'},
+    ]},
 };
 const DB_WLIB = [
+  {type:'ring-score',icon:'⭕',name:'Ring Score'},
+  {type:'kpi-glow',icon:'✨',name:'KPI Néon'},
+  {type:'bars-neon',icon:'📊',name:'Barres Néon'},
+  {type:'bubble-matrix',icon:'🫧',name:'Bulles Matrix'},
+  {type:'activity-feed',icon:'📡',name:'Feed Live'},
+  {type:'heat-grid',icon:'🌡',name:'Heatmap'},
+  {type:'radar-sites',icon:'🕸',name:'Radar Sites'},
+  {type:'timeline',icon:'📏',name:'Timeline'},
   {type:'score-group',icon:'🎯',name:'Score groupe'},{type:'kpi',icon:'🔢',name:'KPI'},
   {type:'bar-activity',icon:'📊',name:'Activité'},{type:'donut-modules',icon:'🥧',name:'Donut modules'},
   {type:'ranking',icon:'🏆',name:'Classement'},{type:'coverage-bars',icon:'📏',name:'Couverture'},
@@ -3095,7 +3196,7 @@ function renderDBGallery(){
         <div class="db-card-desc">${db.desc||''}</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
           <span class="db-tag">${(db.widgets||[]).length} widgets</span>
-          ${db.cmp?'<span class="db-tag" style="color:var(--bl)">↔ Comparatif</span>':''}
+          ${db.cmp?'<span class="db-tag" style="color:var(--bl)">↔ Comparatif</span>':''}${db.theme==='dark'?'<span class="db-tag" style="color:var(--pu)">🌌 Dark</span>':''}
         </div>
         <div class="db-card-actions">
           <button class="db-action primary" onclick="openDB('${db.id}')">Ouvrir</button>
@@ -3198,9 +3299,9 @@ function renderDBView(){
         ${dbEditMode?'✓ Terminer':'✏️ Modifier'}
       </button>
     </div>
-    <div class="db-canvas ${dbEditMode?'em':''}" id="db-canvas">
+    <div class="db-canvas ${dbEditMode?'em':''} ${activeDB&&activeDB.theme==='dark'?'db-dark':''}" id="db-canvas">
       ${(activeDB.widgets||[]).map(w=>`
-      <div class="db-widget db-span-${w.span||6}" id="dbw-${w.id}">
+      <div class="db-widget db-span-${w.span||6} db-widget-anim" id="dbw-${w.id}">
         <div class="db-wh">
           <span style="font-size:.85rem">${DB_WLIB.find(x=>x.type===w.type)?.icon||'📊'}</span>
           <span class="db-wh-title">${w.title}</span>
@@ -3397,6 +3498,14 @@ function renderDBWidget(w){
       case'cmp-kpi': dbRenderCmpKpi(el,w,dbCmpData,d); break;
       case'cmp-bars': dbRenderCmpBars(el,w,dbCmpData); break;
       case'cmp-table': dbRenderCmpTable(el,w,dbCmpData); break;
+      case'ring-score': dbRenderRingScore(el,w,d); break;
+      case'kpi-glow': dbRenderKpiGlow(el,w,d,rs); break;
+      case'bars-neon': dbRenderBarsNeon(el,w,d); break;
+      case'bubble-matrix': dbRenderBubbleMatrix(el,w,d,rs); break;
+      case'activity-feed': dbRenderActivityFeed(el,w,d); break;
+      case'heat-grid': dbRenderHeatGrid(el,w,d); break;
+      case'radar-sites': dbRenderRadarSites(el,w,d,rs); break;
+      case'timeline': dbRenderTimeline(el,w,d,rs); break;
       default: el.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:.78rem">Widget "${w.type}"</div>`;
     }
   }catch(err){el.innerHTML=`<div style="padding:14px;color:var(--re);font-size:.75rem">Erreur: ${err.message}</div>`;}
@@ -3414,6 +3523,202 @@ function dbSpark(vals,w=80,h=20,col='#f97316'){
   const mx=Math.max(...vals,1);
   const pts=vals.map((v,i)=>`${(i/(vals.length-1))*w},${h-(v/mx)*(h-3)-1}`).join(' ');
   return`<svg width="${w}" height="${h}"><polygon points="0,${h} ${pts} ${w},${h}" fill="${col}" opacity=".15"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+
+// ── FUTURISTIC WIDGETS ────────────────────────────────────────────────────────
+
+// Animated ring score
+function dbRenderRingScore(el,w,d){
+  const score=d.groupScore||0;
+  const COLORS={champion:'#10b981',conforme:'#06b6d4',vigilance:'#f59e0b',atrisk:'#f97316',critique:'#f43f5e'};
+  const col=score>=75?COLORS.conforme:score>=60?COLORS.vigilance:score>=45?COLORS.atrisk:COLORS.critique;
+  const r=52,c=64,circ=2*Math.PI*r;
+  const offset=circ*(1-score/100);
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:16px;padding:14px 16px;flex-wrap:wrap">
+    <div style="position:relative;width:128px;height:128px;flex-shrink:0">
+      <svg width="128" height="128" style="transform:rotate(-90deg)">
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round"
+          stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"
+          id="dbring-${w.id}" style="filter:drop-shadow(0 0 8px ${col});transition:stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div id="dbring-v-${w.id}" style="font-size:1.9rem;font-weight:900;color:${col};line-height:1;filter:drop-shadow(0 0 6px ${col})">0</div>
+        <div style="font-size:.58rem;opacity:.35;text-transform:uppercase;letter-spacing:.1em">/100</div>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:.6rem;opacity:.4;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Conformité HACCP</div>
+      <div style="font-size:.88rem;font-weight:800;padding:4px 12px;border-radius:8px;display:inline-block;background:${col}20;color:${col};border:1px solid ${col}40;margin-bottom:10px">${dbScoreLbl(score)}</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        ${(d.restaurants||[]).map(r=>{const rs=d.restaurantStats[r.id];const s=rs&&rs.complianceScore&&rs.complianceScore.score||0;const c2=dbScoreColor(s);
+          return`<div style="display:flex;align-items:center;gap:6px"><span style="font-size:.7rem;flex:1;opacity:.6">${r.name.replace('ILIA - ','')}</span>
+            <div style="width:60px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden"><div style="height:100%;width:${s}%;background:${c2};border-radius:2px;transition:width 1s ease;box-shadow:0 0 4px ${c2}"></div></div>
+            <span style="font-size:.7rem;font-weight:700;color:${c2};min-width:20px">${s}</span></div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+  setTimeout(()=>{
+    const ring=document.getElementById('dbring-'+w.id);
+    if(ring)ring.style.strokeDashoffset=offset.toFixed(1);
+    const val=document.getElementById('dbring-v-'+w.id);
+    if(val){let cur=0;const iv=setInterval(()=>{cur=Math.min(cur+Math.ceil(score/50),score);val.textContent=cur;if(cur>=score)clearInterval(iv);},20);}
+  },200);
+}
+
+// Neon KPI card
+function dbRenderKpiGlow(el,w,d,rs){
+  const NEON=['#f97316','#06b6d4','#8b5cf6','#10b981','#f43f5e','#f59e0b'];
+  const configs={total:{v:Object.values(d.moduleTotals||{}).reduce((a,b)=>a+b,0),lbl:'actions tracées',ic:'⚡',ci:0},
+    alerts:{v:(d.anomalies||[]).length,lbl:'alertes',ic:'🔴',ci:4},
+    p1:{v:(d.actionPlan||[]).filter(a=>a.priority==='P1').length,lbl:'actions P1',ic:'🎯',ci:0},
+    crit:{v:(d.anomalies||[]).filter(a=>a.severity==='critical').length,lbl:'critiques',ic:'💀',ci:4},
+    score:{v:d.groupScore||0,lbl:'score conformité',ic:'🛡️',ci:1},
+    risk:{v:rs.filter(r=>r.complianceScore&&r.complianceScore.score<50).length,lbl:'sites à risque',ic:'⚠️',ci:4},
+    pred:{v:rs.length?Math.round(rs.reduce((s,r)=>s+(r.predictiveRisk||0),0)/rs.length):0,lbl:'score prédict.',ic:'🔮',ci:2},
+    high:{v:(d.anomalies||[]).filter(a=>a.severity==='high').length,lbl:'importantes',ic:'🟡',ci:5},
+  };
+  const cfg=configs[w.metric||'total']||configs.total;
+  const col=NEON[cfg.ci];
+  el.innerHTML=`<div class="db-kpi-glass" style="--db-kpi-color:${col}">
+    <div class="db-kpi-icon">${cfg.ic}</div>
+    <div class="db-kpi-lbl">${w.title||cfg.lbl}</div>
+    <div class="db-kpi-num" style="color:${col};text-shadow:0 0 15px ${col}80" id="kpi-v-${w.id}">0</div>
+    <div class="db-kpi-sub">${cfg.lbl}</div>
+    <div style="position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${col},transparent);opacity:.5"></div>
+  </div>`;
+  setTimeout(()=>{
+    const el2=document.getElementById('kpi-v-'+w.id);
+    if(el2){let c=0;const iv=setInterval(()=>{c=Math.min(c+Math.max(1,Math.ceil(cfg.v/40)),cfg.v);el2.textContent=c.toLocaleString('fr');if(c>=cfg.v)clearInterval(iv);},20);}
+  },150);
+}
+
+// Neon bar chart
+function dbRenderBarsNeon(el,w,d){
+  const dates=(d.period&&d.period.allDates||[]).slice(-14);
+  const totals=(d.groupDailyTotals||[]).slice(-14);
+  const max=Math.max(...totals,1);
+  const COLS=['#f97316','#06b6d4','#8b5cf6','#10b981','#f43f5e'];
+  el.innerHTML=`<div class="db-nbar-wrap">
+    ${dates.map((date,i)=>{
+      const col=COLS[i%COLS.length];
+      return`<div class="db-nbar" id="nbar-${w.id}-${i}" title="${date.slice(5)}: ${totals[i]}"
+        style="height:4px;background:linear-gradient(to top,${col},${col}88);box-shadow:0 0 8px ${col}60">
+        <span class="db-nbar-lbl">${date.slice(5)}</span>
+      </div>`;
+    }).join('')}
+  </div>`;
+  setTimeout(()=>{
+    dates.forEach((_,i)=>{
+      const bar=document.getElementById('nbar-'+w.id+'-'+i);
+      if(bar){const h=Math.max(4,Math.round(totals[i]/max*150));setTimeout(()=>{bar.style.height=h+'px';},i*40);}
+    });
+  },100);
+}
+
+// Bubble matrix (sites × modules)
+function dbRenderBubbleMatrix(el,w,d,rs){
+  const mods=DB_MOD_NAMES.slice(0,6);
+  const maxV=Math.max(...rs.flatMap(r=>mods.map(m=>r.modules&&r.modules[m]&&r.modules[m].total||0)),1);
+  const COLS=['#f97316','#22c55e','#3b82f6','#8b5cf6','#f59e0b','#06b6d4'];
+  el.innerHTML=`<div style="overflow-x:auto;padding:8px">
+    <div style="display:grid;grid-template-columns:90px repeat(${mods.length},1fr);gap:3px;min-width:420px">
+      <div></div>
+      ${mods.map((m,i)=>`<div style="text-align:center;font-size:.58rem;color:${COLS[i]};font-weight:700;opacity:.7;padding:2px 0">${m.replace('Températures ','T.').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.').replace('Étiq. imprimées','Étiq.imp.')}</div>`).join('')}
+      ${rs.map(r=>`
+        <div style="font-size:.72rem;font-weight:600;opacity:.65;display:flex;align-items:center;padding-right:6px">${r.name.replace('ILIA - ','')}</div>
+        ${mods.map((m,mi)=>{
+          const v=r.modules&&r.modules[m]&&r.modules[m].total||0;
+          const sz=v>0?Math.max(8,Math.round(Math.sqrt(v/maxV)*40)):0;
+          const col=COLS[mi];
+          return`<div class="db-bubble-cell">
+            ${v>0?`<div class="db-bubble" title="${r.name.replace('ILIA - ','')}: ${v} ${m}" style="width:${sz}px;height:${sz}px;background:${col};opacity:.7;box-shadow:0 0 ${Math.round(sz/2)}px ${col}60"></div>`
+            :`<div style="width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.06)"></div>`}
+          </div>`;
+        }).join('')}`).join('')}
+    </div>
+  </div>`;
+}
+
+// Activity feed (scrolling alerts)
+function dbRenderActivityFeed(el,w,d){
+  const anoms=(d.anomalies||[]).slice(0,10);
+  const FDOT={critical:'#f43f5e',high:'#f59e0b',medium:'#3b82f6'};
+  el.innerHTML=`<div class="db-scan-wrap" style="max-height:260px;overflow-y:auto;padding:6px 12px">
+    ${anoms.map((a,i)=>`<div class="db-feed-item" style="animation-delay:${i*60}ms;opacity:0;animation-fill-mode:forwards">
+      <div class="db-feed-dot" style="background:${FDOT[a.severity]||'#666'}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.77rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,.85)">${a.title}</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,.35);margin-top:1px">${a.restaurant.replace('ILIA - ','')}</div>
+      </div>
+      <span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:5px;flex-shrink:0;background:${FDOT[a.severity]||'#666'}20;color:${FDOT[a.severity]||'#666'}">${a.metric}</span>
+    </div>`).join('')||'<div style="text-align:center;padding:20px;opacity:.35;font-size:.8rem">✅ Aucune anomalie</div>'}
+  </div>`;
+}
+
+// Heat intensity grid (module × period)
+function dbRenderHeatGrid(el,w,d){
+  const dates=(d.period&&d.period.allDates||[]);
+  const totals=d.groupDailyTotals||[];
+  const max=Math.max(...totals,1);
+  const weeks=[];let week=[];
+  // Pad start
+  const firstDow=dates.length?(new Date(dates[0]).getDay()+6)%7:0;
+  for(let i=0;i<firstDow;i++)week.push(null);
+  dates.forEach((date,i)=>{week.push({date,val:totals[i]});if(week.length===7){weeks.push([...week]);week=[];}});
+  if(week.length)weeks.push([...week]);
+  const cell=(item)=>{
+    if(!item)return`<div style="width:14px;height:14px"></div>`;
+    const pct=item.val/max;
+    const alpha=pct>0?0.15+pct*0.85:0;
+    const bg=pct>0?`rgba(249,115,22,${alpha.toFixed(2)})`:'rgba(255,255,255,.04)';
+    const glow=pct>0.6?`box-shadow:0 0 ${Math.round(pct*8)}px rgba(249,115,22,.5)`:'';
+    return`<div title="${item.date.slice(5)}: ${item.val}" style="width:14px;height:14px;border-radius:2px;background:${bg};${glow};cursor:pointer;transition:transform .1s" onmouseover="this.style.transform='scale(1.4)'" onmouseout="this.style.transform='scale(1)'"></div>`;
+  };
+  el.innerHTML=`<div style="padding:10px 14px">
+    <div style="font-size:.62rem;opacity:.35;margin-bottom:8px">Activité groupe · ${dates.length} jours</div>
+    <div style="display:flex;gap:2px">${weeks.map(wk=>`<div style="display:flex;flex-direction:column;gap:2px">${wk.map(cell).join('')}</div>`).join('')}</div>
+    <div style="display:flex;align-items:center;gap:4px;margin-top:8px;font-size:.6rem;opacity:.35">
+      Moins <div style="width:10px;height:10px;border-radius:2px;background:rgba(255,255,255,.04)"></div>
+      <div style="width:10px;height:10px;border-radius:2px;background:rgba(249,115,22,.25)"></div>
+      <div style="width:10px;height:10px;border-radius:2px;background:rgba(249,115,22,.6)"></div>
+      <div style="width:10px;height:10px;border-radius:2px;background:rgba(249,115,22,.9)"></div> Plus
+    </div>
+  </div>`;
+}
+
+// Radar multi-sites
+function dbRenderRadarSites(el,w,d,rs){
+  el.innerHTML=`<div class="db-cb260"><canvas id="dbc-${w.id}-rad"></canvas></div>`;
+  const maxV=DB_MOD_NAMES.map(m=>Math.max(...rs.map(r=>r.modules&&r.modules[m]&&r.modules[m].total||0),1));
+  const RCOLS=['#f97316','#06b6d4','#8b5cf6','#10b981','#f43f5e'];
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-rad`,'radar',{
+    labels:DB_MOD_NAMES.map(m=>m.replace('Températures ','T.').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.')),
+    datasets:rs.map((r,i)=>({label:r.name.replace('ILIA - ',''),data:DB_MOD_NAMES.map((m,mi)=>r.modules&&r.modules[m]&&r.modules[m].total/maxV[mi]*100||0),backgroundColor:RCOLS[i%5]+'22',borderColor:RCOLS[i%5],borderWidth:2,pointBackgroundColor:RCOLS[i%5],pointRadius:3}))
+  },{plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,.5)',font:{size:10},boxWidth:10}}},scales:{r:{backgroundColor:'rgba(255,255,255,.02)',grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'rgba(255,255,255,.25)',backdropColor:'transparent',stepSize:25},pointLabels:{color:'rgba(255,255,255,.5)',font:{size:9}}}}}),50);
+}
+
+// Timeline compliance strip
+function dbRenderTimeline(el,w,d,rs){
+  const sorted=[...rs].sort((a,b)=>(b.complianceScore&&b.complianceScore.score||0)-(a.complianceScore&&a.complianceScore.score||0));
+  el.innerHTML=`<div style="padding:12px 14px;display:flex;flex-direction:column;gap:10px">
+    ${sorted.map((r,i)=>{
+      const cs=r.complianceScore||{score:0,color:'#aaa',label:'?'};
+      const trend=r.overall&&r.overall.halfTrend||0;
+      const trendArrow=trend>0.1?'↗':trend<-0.1?'↘':'→';
+      const trendCol=trend>0.1?'#10b981':trend<-0.1?'#f43f5e':'rgba(255,255,255,.3)';
+      return`<div style="display:flex;align-items:center;gap:10px;animation:db-fade-up .4s ease ${i*80}ms both">
+        <div style="font-size:.72rem;font-weight:700;width:80px;flex-shrink:0;opacity:.7">${r.name.replace('ILIA - ','')}</div>
+        <div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;position:relative">
+          <div style="height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,${cs.color},${cs.color}88);box-shadow:0 0 6px ${cs.color}80;transition:width 1.2s cubic-bezier(.34,1.2,.64,1)" id="tl-${w.id}-${i}"></div>
+        </div>
+        <div style="font-size:.8rem;font-weight:900;color:${cs.color};min-width:28px;text-align:right;text-shadow:0 0 8px ${cs.color}60">${cs.score}</div>
+        <div style="font-size:.85rem;color:${trendCol};min-width:16px">${trendArrow}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+  setTimeout(()=>{sorted.forEach((_,i)=>{const el2=document.getElementById('tl-'+w.id+'-'+i);if(el2)setTimeout(()=>{el2.style.width=(sorted[i].complianceScore&&sorted[i].complianceScore.score||0)+'%';},i*100+200);});},100);
 }
 
 function dbRenderScoreGroup(el,w,d){
