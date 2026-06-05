@@ -864,7 +864,10 @@ async function run(){
     const tid=setTimeout(()=>ctrl.abort(),55000);
     const r=await fetch(`/api/deep?start_date=${encodeURIComponent(toApi(ds))}&end_date=${encodeURIComponent(toApi(de))}`,{signal:ctrl.signal});
     clearTimeout(tid);
-    if(!r.ok) throw new Error(`Erreur serveur ${r.status} — réessayez`);
+    if(!r.ok){
+      const errBody = await r.json().catch(()=>null);
+      throw new Error(errBody?.error || `Erreur serveur ${r.status}`);
+    }
     S.data=await r.json();
     if(S.data.error) throw new Error(S.data.error);
     if(!S.selR && S.data.restaurants.length) S.selR=S.data.restaurants[0].id;
