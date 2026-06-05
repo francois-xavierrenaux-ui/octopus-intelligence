@@ -516,6 +516,79 @@ td{padding:8px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 .ibr-edit-toolbar button{background:none;border:none;color:rgba(255,255,255,.7);font-size:.75rem;cursor:pointer;padding:3px 8px;border-radius:4px;transition:background .15s;}
 .ibr-edit-toolbar button:hover{background:rgba(255,255,255,.12);color:#fff;}
 .ibr-note-badge{position:absolute;top:10px;right:10px;background:var(--or);color:#fff;border-radius:6px;padding:3px 9px;font-size:.7rem;font-weight:700;cursor:pointer;}
+/* ─── DASHBOARD BUILDER ──────────────────────────────────── */
+.db-topbar{display:flex;align-items:center;gap:10px;padding:12px 0;flex-wrap:wrap;margin-bottom:14px;}
+.db-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
+.db-card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);cursor:pointer;border:2px solid transparent;transition:all .2s;position:relative;}
+.db-card:hover{border-color:var(--or);transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.db-card.builtin::after{content:'PRESET';position:absolute;top:8px;right:8px;font-size:.58rem;font-weight:800;letter-spacing:.08em;background:var(--orl);color:var(--or);padding:1px 6px;border-radius:4px;}
+.db-card-icon{font-size:1.6rem;margin-bottom:6px;}
+.db-card-name{font-weight:800;font-size:.9rem;margin-bottom:3px;}
+.db-card-desc{font-size:.74rem;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+.db-tag{background:var(--bg);border-radius:5px;padding:1px 7px;font-size:.66rem;font-weight:600;color:var(--muted);}
+.db-card-actions{display:flex;gap:6px;margin-top:10px;}
+.db-action{flex:1;border:1px solid var(--border);background:none;border-radius:6px;padding:5px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;color:var(--txt);}
+.db-action.primary{background:var(--or);border-color:var(--or);color:#fff;}
+.db-action:hover{border-color:var(--or);color:var(--or);}
+.db-action.primary:hover{background:var(--ord);}
+.db-view-hdr{background:var(--card);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.db-title-editable{font-size:.95rem;font-weight:800;border:none;outline:none;background:none;color:var(--txt);cursor:text;min-width:80px;}
+.db-title-editable:focus{border-bottom:2px solid var(--or);}
+.db-run-btn{background:var(--or);color:#fff;border:none;border-radius:7px;padding:6px 16px;font-size:.78rem;font-weight:700;cursor:pointer;}
+.db-run-btn:hover{background:var(--ord);}
+.db-edit-btn{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:.75rem;font-weight:700;cursor:pointer;margin-left:auto;}
+.db-edit-btn.editing{background:var(--gr);}
+.db-canvas{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;align-items:start;}
+.db-canvas.em .db-widget{border:2px dashed var(--border);position:relative;}
+.db-canvas.em .db-widget:hover{border-color:var(--or);}
+.db-span-3{grid-column:span 3;} .db-span-4{grid-column:span 4;} .db-span-6{grid-column:span 6;}
+.db-span-8{grid-column:span 8;} .db-span-9{grid-column:span 9;} .db-span-12{grid-column:span 12;}
+@media(max-width:1200px){.db-span-3{grid-column:span 6;}.db-span-4{grid-column:span 6;}.db-span-8,.db-span-9{grid-column:span 12;}}
+@media(max-width:768px){.db-canvas{grid-template-columns:1fr;}.db-span-3,.db-span-4,.db-span-6,.db-span-8,.db-span-9,.db-span-12{grid-column:span 1;}}
+.db-widget{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.db-wh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f1f5f9;}
+.db-wh-title{font-size:.82rem;font-weight:700;flex:1;}
+.db-wa{display:flex;gap:3px;}
+.db-wa-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.72rem;padding:2px 5px;border-radius:4px;}
+.db-wa-btn:hover{background:var(--bg);color:var(--or);}
+.db-wb{padding:12px 14px;}
+.db-cb120{height:120px;position:relative;} .db-cb180{height:180px;position:relative;} .db-cb220{height:220px;position:relative;}
+.db-cb260{height:260px;position:relative;} .db-cb300{height:300px;position:relative;}
+.db-kpi-w{display:flex;align-items:center;gap:10px;padding:12px;}
+.db-kpi-v{font-size:1.8rem;font-weight:900;letter-spacing:-.5px;}
+.db-kpi-lbl{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.db-kpi-sub{font-size:.74rem;color:var(--muted);margin-top:2px;}
+.db-kpi-ic{font-size:1.4rem;opacity:.25;}
+.db-rank-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:.8rem;}
+.db-rank-num{font-weight:800;color:var(--muted);width:20px;}
+.db-rank-name{flex:1;font-weight:600;}
+.db-rank-pb{background:#f0f0f5;border-radius:3px;height:5px;overflow:hidden;width:70px;}
+.db-rank-fill{height:100%;border-radius:3px;}
+.db-cmp-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem;}
+.db-cmp-lbl{width:120px;flex-shrink:0;font-weight:600;font-size:.75rem;}
+.db-badge-a{background:var(--orl);color:var(--or);padding:1px 7px;border-radius:5px;font-size:.68rem;font-weight:700;}
+.db-badge-b{background:var(--bll);color:var(--bl);padding:1px 7px;border-radius:5px;font-size:.68rem;font-weight:700;}
+.db-wlib{position:fixed;right:0;top:0;bottom:0;width:260px;background:var(--card);border-left:1px solid var(--border);box-shadow:-4px 0 16px rgba(0,0,0,.08);z-index:450;overflow-y:auto;padding:14px;transform:translateX(100%);transition:transform .3s;}
+.db-wlib.open{transform:translateX(0);}
+.db-wlib-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+.db-wlib-item{background:var(--bg);border-radius:8px;padding:8px;cursor:pointer;text-align:center;border:1px solid transparent;transition:all .15s;}
+.db-wlib-item:hover{background:var(--orl);border-color:var(--or);}
+.db-zone-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:10px;font-size:.72rem;font-weight:700;cursor:pointer;margin:2px;}
+.db-period-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.db-period-pill{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:4px 10px;font-size:.72rem;cursor:pointer;transition:all .15s;}
+.db-period-pill input[type=date]{border:none;background:none;outline:none;font-size:.72rem;cursor:pointer;width:90px;}
+.db-vs{background:var(--navy);color:#fff;border-radius:4px;padding:2px 7px;font-size:.66rem;font-weight:800;}
+.db-modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:600;align-items:center;justify-content:center;}
+.db-modal-bg.on{display:flex;}
+.db-modal{background:var(--card);border-radius:12px;padding:20px;max-width:440px;width:90vw;box-shadow:0 20px 50px rgba(0,0,0,.2);}
+.db-form-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;display:block;}
+.db-form-inp{width:100%;border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:.82rem;outline:none;margin-bottom:10px;}
+.db-form-inp:focus{border-color:var(--or);}
+.db-form-sel{width:100%;border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:.82rem;outline:none;background:#fff;margin-bottom:10px;}
+.db-zone-form{background:var(--bg);border-radius:8px;padding:12px;margin-top:8px;}
+.db-zone-colors{display:flex;gap:5px;margin-bottom:8px;}
+.db-zc{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s;}
+.db-zc.sel{border-color:var(--txt);}
 </style>
 </head>
 <body>
@@ -636,7 +709,8 @@ td{padding:8px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 
 <!-- Tabs -->
 <nav class="tabs" id="tabs">
-  <button class="tab on"  onclick="goTab('dq')">     <span class="tab-icon">🎯</span>Synthèse DQ</button>
+  <button class="tab on"  onclick="goTab('dashboards')"><span class="tab-icon">📊</span>Dashboards</button>
+  <button class="tab"     onclick="goTab('dq')">     <span class="tab-icon">🎯</span>Synthèse DQ</button>
   <button class="tab"     onclick="goTab('conf')">    <span class="tab-icon">📊</span>Conformité</button>
   <button class="tab"     onclick="goTab('signals')"> <span class="tab-icon">⚡</span>Signaux Faibles</button>
   <button class="tab"     onclick="goTab('plan')">    <span class="tab-icon">📋</span>Plan d'Action</button>
@@ -650,7 +724,8 @@ td{padding:8px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 
 <!-- Content -->
 <div class="content">
-  <div class="view on" id="v-dq">      <div class="empty"><div class="empty-ic">🎯</div><h2>Synthèse Directeur Qualité</h2><p>Sélectionnez une période et lancez l'analyse.</p></div></div>
+  <div class="view on"  id="v-dashboards"><div class="empty"><div class="empty-ic">📊</div><h2>Dashboard Builder</h2><p>Sélectionnez une période, lancez l'analyse, puis construisez vos tableaux de bord.</p></div></div>
+  <div class="view" id="v-dq">      <div class="empty"><div class="empty-ic">🎯</div><h2>Synthèse Directeur Qualité</h2><p>Sélectionnez une période et lancez l'analyse.</p></div></div>
   <div class="view"    id="v-conf">    <div class="empty"><div class="empty-ic">📊</div><h2>Tableau de Conformité HACCP</h2><p>Lancez d'abord une analyse.</p></div></div>
   <div class="view"    id="v-signals"> <div class="empty"><div class="empty-ic">⚡</div><h2>Signaux Faibles & Anomalies</h2><p>Lancez d'abord une analyse.</p></div></div>
   <div class="view"    id="v-plan">    <div class="empty"><div class="empty-ic">📋</div><h2>Plan d'Action Qualité</h2><p>Lancez d'abord une analyse.</p></div></div>
@@ -663,7 +738,7 @@ td{padding:8px 11px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
 // ═══════════════════════════════ STATE ════════════════════════════════════════
 const S = { tab:'dq', data:null, selR:null, selMod:'Températures frigos', codirIdx:0 };
 const charts = {};
-const TABS = ['dq','conf','signals','plan','profile','map','docs'];
+const TABS = ['dashboards','dq','conf','signals','plan','profile','map','docs'];
 const MODS = ['Températures frigos','Plans de nettoyage','Réceptions','Étiquettes DLC','Étiq. imprimées','Refroidissement','Réchauffage','Gestion déchets'];
 const MCOLS = ['#f97316','#22c55e','#3b82f6','#14b8a6','#8b5cf6','#60a5fa','#f59e0b','#64748b'];
 const DOW = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -771,6 +846,7 @@ function goTab(tab){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   $('v-'+tab).classList.add('on');
   if(S.data && tab==='profile') renderProfile();
+  if(tab==='dashboards') renderDashboards();
   if(S.data && tab==='map') renderMap();
   if(S.data && tab==='docs') renderDocs();
 }
@@ -794,6 +870,7 @@ async function run(){
 
 function renderAll(){
   renderDQ(); renderConf(); renderSignals(); renderPlan();
+  if(S.tab==='dashboards') renderDashboards();
   if(S.tab==='profile') renderProfile();
 }
 
@@ -2907,6 +2984,536 @@ function saveNarratorEdit(){
   // Also update the slide note in panel
   const noteEl=document.getElementById('cfg-slide-note');
   if(noteEl) noteEl.value=nar.textContent;
+}
+
+// ═══════════════════════════════ DASHBOARD BUILDER ═══════════════════════════
+
+const DB_KEY2 = 'octopus_db_v3';
+const ZONE_KEY2 = 'octopus_zones_v3';
+const DB_CHART_COLORS = ['#f97316','#22c55e','#3b82f6','#8b5cf6','#f59e0b','#14b8a6','#f97316','#64748b'];
+const DB_MOD_NAMES = ['Températures frigos','Plans de nettoyage','Réceptions','Étiquettes DLC','Étiq. imprimées','Refroidissement','Réchauffage','Gestion déchets'];
+
+let activeDB = null, dbEditMode = false, dbConfW = null, dbCmpData = null;
+const dbCharts = {};
+
+function getDBList(){ try{return JSON.parse(localStorage.getItem(DB_KEY2)||'[]');}catch{return[];} }
+function saveDBList(d){ localStorage.setItem(DB_KEY2,JSON.stringify(d)); }
+function getZoneList(){ try{return JSON.parse(localStorage.getItem(ZONE_KEY2)||'[]');}catch{return[];} }
+function saveZoneList(z){ localStorage.setItem(ZONE_KEY2,JSON.stringify(z)); }
+function killDBChart(id){ if(dbCharts[id]){dbCharts[id].destroy();delete dbCharts[id];} }
+function mkDBChart(id,type,data,opts){
+  killDBChart(id);
+  const c=document.getElementById(id); if(!c)return;
+  dbCharts[id]=new Chart(c,{type,data,options:{responsive:true,maintainAspectRatio:false,...(opts||{})}});
+}
+const dbScoreColor = s => s>=75?'#22c55e':s>=60?'#14b8a6':s>=45?'#f59e0b':s>=30?'#f97316':'#ef4444';
+const dbScoreLbl = s => s>=75?'Conforme':s>=60?'Vigilance':s>=45?'À risque':'Critique';
+
+const DB_PRESETS = {
+  overview:{id:'overview',name:'🎯 Vue Groupe',desc:'Score, activité, modules, alertes — vue complète',builtin:true,cmp:false,
+    widgets:[
+      {id:'w1',type:'score-group',title:'Score Conformité',span:'4'},
+      {id:'w2',type:'kpi',title:'Actions Tracées',metric:'total',span:'4'},
+      {id:'w3',type:'kpi',title:'Alertes',metric:'alerts',span:'4'},
+      {id:'w4',type:'bar-activity',title:'Activité Quotidienne',span:'8'},
+      {id:'w5',type:'donut-modules',title:'Répartition Modules',span:'4'},
+      {id:'w6',type:'ranking',title:'Classement',span:'6'},
+      {id:'w7',type:'coverage-bars',title:'Couverture Frigos et PND',span:'6'},
+      {id:'w8',type:'alerts-list',title:'Top Alertes',span:'12'},
+    ]},
+  comparison:{id:'comparison',name:'↔ Comparatif Périodes',desc:'Comparez deux périodes côte à côte',builtin:true,cmp:true,
+    widgets:[
+      {id:'w1',type:'cmp-kpi',title:'Évolution Score',metric:'score',span:'4'},
+      {id:'w2',type:'cmp-kpi',title:'Évolution Actions',metric:'total',span:'4'},
+      {id:'w3',type:'cmp-kpi',title:'Évolution Alertes',metric:'alerts',span:'4'},
+      {id:'w4',type:'cmp-bars',title:'Modules A vs B',span:'12'},
+      {id:'w5',type:'cmp-table',title:'Tableau comparatif',span:'12'},
+    ]},
+  restaurants:{id:'restaurants',name:'🏠 Multi-Sites',desc:'Comparatif entre établissements',builtin:true,cmp:false,
+    widgets:[
+      {id:'w1',type:'score-cards',title:'Scores par Site',span:'12'},
+      {id:'w2',type:'bar-by-r',title:'Volume par Établissement',span:'6'},
+      {id:'w3',type:'dow-chart',title:'Activité par Jour',span:'6'},
+      {id:'w4',type:'sparklines',title:'Tendances',span:'12'},
+    ]},
+  signals:{id:'signals',name:'⚡ Signaux',desc:'Anomalies, risques et alertes',builtin:true,cmp:false,
+    widgets:[
+      {id:'w1',type:'kpi',title:'Critiques',metric:'crit',span:'3'},
+      {id:'w2',type:'kpi',title:'Importantes',metric:'high',span:'3'},
+      {id:'w3',type:'kpi',title:'Sites à risque',metric:'risk',span:'3'},
+      {id:'w4',type:'kpi',title:'Score prédict. moy.',metric:'pred',span:'3'},
+      {id:'w5',type:'alerts-list',title:'Toutes les Alertes',span:'6'},
+      {id:'w6',type:'risk-matrix',title:'Matrice Risque',span:'6'},
+    ]},
+};
+const DB_WLIB = [
+  {type:'score-group',icon:'🎯',name:'Score groupe'},{type:'kpi',icon:'🔢',name:'KPI'},
+  {type:'bar-activity',icon:'📊',name:'Activité'},{type:'donut-modules',icon:'🥧',name:'Donut modules'},
+  {type:'ranking',icon:'🏆',name:'Classement'},{type:'coverage-bars',icon:'📏',name:'Couverture'},
+  {type:'alerts-list',icon:'⚠️',name:'Alertes'},{type:'score-cards',icon:'🃏',name:'Cartes scores'},
+  {type:'bar-by-r',icon:'🏠',name:'Par site'},{type:'dow-chart',icon:'📅',name:'Jours semaine'},
+  {type:'sparklines',icon:'📈',name:'Sparklines'},{type:'risk-matrix',icon:'⚡',name:'Matrice risque'},
+  {type:'cmp-kpi',icon:'↔',name:'Compar. KPI'},{type:'cmp-bars',icon:'⇔',name:'Compar. modules'},
+  {type:'cmp-table',icon:'⊞',name:'Table compar.'},
+];
+
+function renderDashboards(){
+  const el=document.getElementById('v-dashboards'); if(!el)return;
+  if(!activeDB){ renderDBGallery(); return; }
+  renderDBView();
+}
+
+function renderDBGallery(){
+  const el=document.getElementById('v-dashboards'); if(!el)return;
+  const custom=getDBList();
+  const all=[...Object.values(DB_PRESETS),...custom];
+  el.innerHTML=`
+    <div class="db-topbar">
+      <div style="font-size:1rem;font-weight:800">📊 Tableaux de bord</div>
+      <button class="btn-go" onclick="openDBModal()" style="margin-left:auto">+ Nouveau</button>
+    </div>
+    <div class="sec">Présets</div>
+    <div class="db-gallery">
+      ${all.map(db=>`<div class="db-card ${db.builtin?'builtin':''}">
+        <div class="db-card-icon">${db.name.split(' ')[0]}</div>
+        <div class="db-card-name">${db.name.replace(/^.\s/,'')}</div>
+        <div class="db-card-desc">${db.desc||''}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+          <span class="db-tag">${(db.widgets||[]).length} widgets</span>
+          ${db.cmp?'<span class="db-tag" style="color:var(--bl)">↔ Comparatif</span>':''}
+        </div>
+        <div class="db-card-actions">
+          <button class="db-action primary" onclick="openDB('${db.id}')">Ouvrir</button>
+          ${!db.builtin?`<button class="db-action" onclick="event.stopPropagation();deleteDB('${db.id}')">🗑</button>`:''}
+        </div>
+      </div>`).join('')}
+    </div>
+    <!-- New DB Modal -->
+    <div class="db-modal-bg" id="db-modal" onclick="if(event.target===this)closeDBModal()">
+      <div class="db-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-weight:800">+ Nouveau tableau de bord</div>
+          <button onclick="closeDBModal()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>
+        </div>
+        <label class="db-form-lbl">Nom</label>
+        <input class="db-form-inp" id="db-new-name" placeholder="Mon tableau de bord"/>
+        <label class="db-form-lbl">Modèle</label>
+        <select class="db-form-sel" id="db-new-tmpl">
+          <option value="blank">Vide</option>
+          <option value="overview">Vue Groupe</option>
+          <option value="comparison">Comparatif Périodes</option>
+          <option value="restaurants">Multi-Sites</option>
+          <option value="signals">Signaux</option>
+        </select>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn-go" style="background:var(--bg);color:var(--txt)" onclick="closeDBModal()">Annuler</button>
+          <button class="btn-go" onclick="createDB()">Créer</button>
+        </div>
+      </div>
+    </div>
+    <!-- Widget Config Modal -->
+    <div class="db-modal-bg" id="db-wconf" onclick="if(event.target===this)closeDBWConf()">
+      <div class="db-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-weight:800">⚙️ Configurer le widget</div>
+          <button onclick="closeDBWConf()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>
+        </div>
+        <label class="db-form-lbl">Titre</label>
+        <input class="db-form-inp" id="wc-title"/>
+        <label class="db-form-lbl">Taille</label>
+        <select class="db-form-sel" id="wc-span">
+          <option value="3">Petit (1/4)</option><option value="4">Moyen (1/3)</option>
+          <option value="6">Demi (1/2)</option><option value="8">Large (2/3)</option>
+          <option value="12">Plein (100%)</option>
+        </select>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn-go" style="background:var(--bg);color:var(--txt)" onclick="closeDBWConf()">Annuler</button>
+          <button class="btn-go" onclick="applyDBWConf()">Appliquer</button>
+        </div>
+      </div>
+    </div>
+    <!-- Widget Library -->
+    <div class="db-wlib" id="db-wlib">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:800;font-size:.82rem">📦 Widgets</div>
+        <button onclick="toggleDBWLib()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>
+      </div>
+      <div class="db-wlib-grid">
+        ${DB_WLIB.map(w=>`<div class="db-wlib-item" onclick="addDBWidget('${w.type}')">
+          <div style="font-size:1.3rem">${w.icon}</div>
+          <div style="font-size:.68rem;font-weight:600">${w.name}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function openDB(id){
+  const preset=DB_PRESETS[id];
+  const custom=getDBList().find(d=>d.id===id);
+  activeDB=preset?{...preset,widgets:[...(preset.widgets||[]).map(w=>({...w}))]}:custom;
+  if(!activeDB){return;}
+  dbEditMode=false; dbCmpData=null;
+  renderDBView();
+}
+
+function renderDBView(){
+  const el=document.getElementById('v-dashboards'); if(!el||!activeDB)return;
+  const today=new Date().toISOString().split('T')[0];
+  const m1=new Date();m1.setDate(1);const m1s=m1.toISOString().split('T')[0];
+  const pm=new Date();pm.setDate(1);pm.setMonth(pm.getMonth()-1);
+  const pme=new Date(new Date().getFullYear(),new Date().getMonth(),0);
+
+  el.innerHTML=`
+    <div class="db-view-hdr">
+      <button onclick="activeDB=null;renderDashboards()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem" title="Retour à la galerie">←</button>
+      <input class="db-title-editable" value="${activeDB.name}" onblur="activeDB.name=this.value;if(!activeDB.builtin)saveDB(activeDB)"/>
+      <div class="db-period-row">
+        <div class="db-period-pill">
+          ${activeDB.cmp?'<span class="db-badge-a">A</span>':''} Du
+          <input type="date" id="db-pa-s" value="${m1s}"/> au <input type="date" id="db-pa-e" value="${today}"/>
+        </div>
+        ${activeDB.cmp?`<span class="db-vs">VS</span>
+        <div class="db-period-pill">
+          <span class="db-badge-b">B</span> Du
+          <input type="date" id="db-pb-s" value="${pm.toISOString().split('T')[0]}"/> au <input type="date" id="db-pb-e" value="${pme.toISOString().split('T')[0]}"/>
+        </div>`:''}
+        <button class="db-run-btn" onclick="runDB()">▶ Analyser</button>
+      </div>
+      <button class="db-edit-btn ${dbEditMode?'editing':''}" id="db-edit-btn" onclick="toggleDBEdit()">
+        ${dbEditMode?'✓ Terminer':'✏️ Modifier'}
+      </button>
+    </div>
+    <div class="db-canvas ${dbEditMode?'em':''}" id="db-canvas">
+      ${(activeDB.widgets||[]).map(w=>`
+      <div class="db-widget db-span-${w.span||6}" id="dbw-${w.id}">
+        <div class="db-wh">
+          <span style="font-size:.85rem">${DB_WLIB.find(x=>x.type===w.type)?.icon||'📊'}</span>
+          <span class="db-wh-title">${w.title}</span>
+          <div class="db-wa">
+            ${dbEditMode?`
+              <button class="db-wa-btn" onclick="dbResizeW('${w.id}','-')">◀</button>
+              <button class="db-wa-btn" onclick="dbResizeW('${w.id}','+')">▶</button>
+              <button class="db-wa-btn" onclick="dbConfWidget('${w.id}')">⚙️</button>
+              <button class="db-wa-btn" onclick="dbRemoveW('${w.id}')" style="color:var(--re)">✕</button>
+            `:`<button class="db-wa-btn" onclick="dbConfWidget('${w.id}')">⚙️</button>`}
+          </div>
+        </div>
+        <div class="db-wb" id="dbwb-${w.id}"></div>
+      </div>`).join('')}
+      ${dbEditMode?`<div style="grid-column:span 12;text-align:center;padding:16px">
+        <button onclick="toggleDBWLib()" style="background:var(--orl);border:1px dashed var(--or);color:var(--or);border-radius:8px;padding:8px 18px;font-size:.8rem;font-weight:700;cursor:pointer">+ Ajouter un widget</button>
+      </div>`:''}
+    </div>
+    <!-- Modals reused from gallery render, re-insert here -->
+    <div class="db-modal-bg" id="db-wconf" onclick="if(event.target===this)closeDBWConf()">
+      <div class="db-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-weight:800">⚙️ Configurer</div>
+          <button onclick="closeDBWConf()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>
+        </div>
+        <label class="db-form-lbl">Titre</label>
+        <input class="db-form-inp" id="wc-title"/>
+        <label class="db-form-lbl">Taille</label>
+        <select class="db-form-sel" id="wc-span">
+          <option value="3">Petit (1/4)</option><option value="4">Moyen (1/3)</option>
+          <option value="6">Demi (1/2)</option><option value="8">Large (2/3)</option>
+          <option value="12">Plein (100%)</option>
+        </select>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn-go" style="background:var(--bg);color:var(--txt)" onclick="closeDBWConf()">Annuler</button>
+          <button class="btn-go" onclick="applyDBWConf()">Appliquer</button>
+        </div>
+      </div>
+    </div>
+    <div class="db-wlib" id="db-wlib">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:800;font-size:.82rem">📦 Widgets</div>
+        <button onclick="toggleDBWLib()" style="background:none;border:none;cursor:pointer;color:var(--muted)">✕</button>
+      </div>
+      <div class="db-wlib-grid">
+        ${DB_WLIB.map(w=>`<div class="db-wlib-item" onclick="addDBWidget('${w.type}')">
+          <div style="font-size:1.3rem">${w.icon}</div>
+          <div style="font-size:.68rem;font-weight:600">${w.name}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+
+  setTimeout(()=>{
+    (activeDB.widgets||[]).forEach(w=>renderDBWidget(w));
+  },60);
+}
+
+async function runDB(){
+  const sa=document.getElementById('db-pa-s')?.value;
+  const ea=document.getElementById('db-pa-e')?.value;
+  if(!sa||!ea){alert('Sélectionnez une période');return;}
+  document.getElementById('ov')?.classList.add('on');
+  document.getElementById('ov-txt').textContent='Analyse en cours…';
+  try{
+    const r=await fetch(`/api/deep?start_date=${encodeURIComponent(toApi(sa))}&end_date=${encodeURIComponent(toApi(ea))}`);
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    S.data=d;
+    if(activeDB?.cmp){
+      const sb=document.getElementById('db-pb-s')?.value;
+      const eb=document.getElementById('db-pb-e')?.value;
+      if(sb&&eb){
+        const rc=await fetch(`/api/comparison?start_a=${encodeURIComponent(toApi(sa))}&end_a=${encodeURIComponent(toApi(ea))}&start_b=${encodeURIComponent(toApi(sb))}&end_b=${encodeURIComponent(toApi(eb))}`);
+        dbCmpData=await rc.json();
+      }
+    }
+    renderDBView();
+  }catch(e){alert('Erreur: '+e.message);}
+  finally{document.getElementById('ov')?.classList.remove('on');}
+}
+
+function toggleDBEdit(){
+  dbEditMode=!dbEditMode;
+  renderDBView();
+}
+
+function toggleDBWLib(){
+  const wl=document.getElementById('db-wlib');
+  if(wl)wl.classList.toggle('open');
+}
+
+function addDBWidget(type){
+  if(!activeDB)return;
+  const lib=DB_WLIB.find(w=>w.type===type)||{icon:'📊',name:type};
+  const w={id:'w'+Date.now(),type,title:lib.name,span:'6'};
+  if(!activeDB.widgets)activeDB.widgets=[];
+  activeDB.widgets.push(w);
+  if(!activeDB.builtin)saveDB(activeDB);
+  renderDBView();
+}
+
+function dbRemoveW(id){
+  if(!activeDB?.widgets)return;
+  activeDB.widgets=activeDB.widgets.filter(w=>w.id!==id);
+  if(!activeDB.builtin)saveDB(activeDB);
+  renderDBView();
+}
+
+function dbResizeW(id,dir){
+  const w=activeDB?.widgets?.find(x=>x.id===id); if(!w)return;
+  const sizes=['3','4','6','8','12'];
+  const ci=sizes.indexOf(w.span||'6');
+  w.span=sizes[dir==='+'?Math.min(ci+1,4):Math.max(ci-1,0)];
+  if(!activeDB.builtin)saveDB(activeDB);
+  renderDBView();
+}
+
+function dbConfWidget(id){
+  const w=activeDB?.widgets?.find(x=>x.id===id); if(!w)return;
+  dbConfW=w;
+  const t=document.getElementById('wc-title'); if(t)t.value=w.title;
+  const s=document.getElementById('wc-span'); if(s)s.value=w.span||'6';
+  const m=document.getElementById('db-wconf'); if(m)m.classList.add('on');
+}
+
+function applyDBWConf(){
+  if(!dbConfW)return;
+  const t=document.getElementById('wc-title'); if(t)dbConfW.title=t.value;
+  const s=document.getElementById('wc-span'); if(s)dbConfW.span=s.value;
+  if(!activeDB.builtin)saveDB(activeDB);
+  closeDBWConf();
+  renderDBView();
+}
+
+function closeDBWConf(){
+  const m=document.getElementById('db-wconf'); if(m)m.classList.remove('on');
+}
+
+function openDBModal(){
+  const m=document.getElementById('db-modal'); if(m)m.classList.add('on');
+}
+
+function closeDBModal(){
+  const m=document.getElementById('db-modal'); if(m)m.classList.remove('on');
+}
+
+function createDB(){
+  const name=document.getElementById('db-new-name')?.value?.trim()||'Mon Dashboard';
+  const tmpl=document.getElementById('db-new-tmpl')?.value||'blank';
+  const base=tmpl!=='blank'?DB_PRESETS[tmpl]:null;
+  const db={id:'db'+Date.now(),name,builtin:false,cmp:base?.cmp||false,
+    widgets:(base?.widgets||[]).map(w=>({...w,id:'w'+Date.now()+Math.random().toString(36).slice(2)}))};
+  const list=getDBList(); list.push(db); saveDBList(list);
+  closeDBModal();
+  openDB(db.id);
+}
+
+function saveDB(db){
+  if(db.builtin)return;
+  const list=getDBList(); const i=list.findIndex(d=>d.id===db.id);
+  if(i>=0)list[i]=db; else list.push(db);
+  saveDBList(list);
+}
+
+function deleteDB(id){
+  if(!confirm('Supprimer ?'))return;
+  saveDBList(getDBList().filter(d=>d.id!==id));
+  if(activeDB?.id===id){activeDB=null;}
+  renderDashboards();
+}
+
+// ── Widget Renderers ──────────────────────────────────────────────────────────
+
+function renderDBWidget(w){
+  const el=document.getElementById('dbwb-'+w.id); if(!el)return;
+  if(!S.data){el.innerHTML='<div style="padding:14px;color:var(--muted);font-size:.78rem">Lancez d\'abord une analyse →</div>';return;}
+  const d=S.data;
+  const rs=Object.values(d.restaurantStats||{});
+  const mt=d.moduleTotals||{};
+  try{
+    switch(w.type){
+      case'score-group': dbRenderScoreGroup(el,w,d); break;
+      case'kpi': dbRenderKpi(el,w,d,rs); break;
+      case'bar-activity': dbRenderBarActivity(el,w,d); break;
+      case'donut-modules': dbRenderDonut(el,w,mt); break;
+      case'ranking': dbRenderRanking(el,w,rs); break;
+      case'coverage-bars': dbRenderCoverage(el,w,rs); break;
+      case'alerts-list': dbRenderAlerts(el,w,d); break;
+      case'score-cards': dbRenderScoreCards(el,w,rs); break;
+      case'bar-by-r': dbRenderBarByR(el,w,rs); break;
+      case'dow-chart': dbRenderDow(el,w,d); break;
+      case'sparklines': dbRenderSparklines(el,w,rs); break;
+      case'risk-matrix': dbRenderRiskMatrix(el,w,rs,d); break;
+      case'cmp-kpi': dbRenderCmpKpi(el,w,dbCmpData,d); break;
+      case'cmp-bars': dbRenderCmpBars(el,w,dbCmpData); break;
+      case'cmp-table': dbRenderCmpTable(el,w,dbCmpData); break;
+      default: el.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:.78rem">Widget "${w.type}"</div>`;
+    }
+  }catch(err){el.innerHTML=`<div style="padding:14px;color:var(--re);font-size:.75rem">Erreur: ${err.message}</div>`;}
+}
+
+function dbGauge(s,sz=80){
+  const col=dbScoreColor(s),r=sz*.38,cx=sz/2,cy=sz*.56,a=(s/100)*Math.PI;
+  const x2=cx+r*Math.cos(Math.PI-a),y2=cy-r*Math.sin(Math.PI-a),large=a>Math.PI/2?1:0;
+  return `<svg width="${sz}" height="${sz*.58}"><path d="M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}" fill="none" stroke="#e2e8f0" stroke-width="${sz*.1}" stroke-linecap="round"/>${s>0?`<path d="M ${cx-r} ${cy} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${sz*.1}" stroke-linecap="round"/>`:''}
+  <text x="${cx}" y="${cy}" text-anchor="middle" font-size="${sz*.24}" font-weight="900" fill="${col}" font-family="Inter,sans-serif">${s}</text></svg>`;
+}
+
+function dbSpark(vals,w=80,h=20,col='#f97316'){
+  if(!vals||vals.length<2)return`<svg width="${w}" height="${h}"></svg>`;
+  const mx=Math.max(...vals,1);
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1))*w},${h-(v/mx)*(h-3)-1}`).join(' ');
+  return`<svg width="${w}" height="${h}"><polygon points="0,${h} ${pts} ${w},${h}" fill="${col}" opacity=".15"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+
+function dbRenderScoreGroup(el,w,d){
+  const s=d.groupScore||0,col=dbScoreColor(s);
+  el.innerHTML=`<div class="db-kpi-w">${dbGauge(s,100)}<div style="flex:1;padding-left:12px"><div style="font-size:.7rem;color:var(--muted)">Conformité HACCP</div><span style="background:${col}22;color:${col};padding:3px 10px;border-radius:8px;font-size:.78rem;font-weight:700">${dbScoreLbl(s)}</span><div style="font-size:.72rem;color:var(--muted);margin-top:6px">${d.restaurants?.length||0} sites · ${fN(Object.values(d.moduleTotals||{}).reduce((a,b)=>a+b,0))} actions</div></div></div>`;
+}
+
+function dbRenderKpi(el,w,d,rs){
+  const m=w.metric||'total';
+  const vals={total:{v:Object.values(d.moduleTotals||{}).reduce((a,b)=>a+b,0),lbl:'actions tracées',ic:'📊',col:'var(--bl)'},
+    alerts:{v:(d.anomalies||[]).length,lbl:'alertes',ic:'⚠️',col:'var(--re)'},
+    p1:{v:(d.actionPlan||[]).filter(a=>a.priority==='P1').length,lbl:'actions P1',ic:'🎯',col:'var(--or)'},
+    crit:{v:(d.anomalies||[]).filter(a=>a.severity==='critical').length,lbl:'critiques',ic:'🔴',col:'var(--re)'},
+    high:{v:(d.anomalies||[]).filter(a=>a.severity==='high').length,lbl:'importantes',ic:'🟡',col:'var(--am)'},
+    risk:{v:rs.filter(r=>r.complianceScore?.score<50).length,lbl:'sites à risque',ic:'⚡',col:'var(--re)'},
+    pred:{v:rs.length?Math.round(rs.reduce((s,r)=>s+(r.predictiveRisk||0),0)/rs.length):0,lbl:'score prédict. moy.',ic:'🔮',col:'var(--pu)'},
+    score:{v:d.groupScore||0,lbl:'score conformité',ic:'🎯',col:dbScoreColor(d.groupScore||0)},
+  };
+  const kv=vals[m]||vals.total;
+  el.innerHTML=`<div class="db-kpi-w"><div class="db-kpi-ic">${kv.ic}</div><div><div class="db-kpi-lbl">${w.title}</div><div class="db-kpi-v" style="color:${kv.col}">${fN(kv.v)}</div><div class="db-kpi-sub">${kv.lbl}</div></div></div>`;
+}
+
+function dbRenderBarActivity(el,w,d){
+  const dates=(d.period?.allDates||[]),totals=d.groupDailyTotals||[];
+  el.innerHTML=`<div class="db-cb220"><canvas id="dbc-${w.id}-act"></canvas></div>`;
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-act`,'bar',{labels:dates.map(d=>d.slice(5)),datasets:[{data:totals,backgroundColor:totals.map(v=>{const mx=Math.max(...totals,1);return v/mx>0.6?'rgba(249,115,22,.85)':v/mx>0.3?'rgba(249,115,22,.55)':'rgba(249,115,22,.25)';}),borderRadius:3}]},{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:45,maxTicksLimit:12}},y:{beginAtZero:true,ticks:{font:{size:10}}}}}),50);
+}
+
+function dbRenderDonut(el,w,mt){
+  const active=Object.entries(mt).filter(([,v])=>v>0);
+  el.innerHTML=`<div class="db-cb220"><canvas id="dbc-${w.id}-don"></canvas></div>`;
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-don`,'doughnut',{labels:active.map(([m])=>m.replace('Températures ','T. ').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.')),datasets:[{data:active.map(([,v])=>v),backgroundColor:active.map(([m])=>DB_CHART_COLORS[DB_MOD_NAMES.indexOf(m)%DB_CHART_COLORS.length]),borderWidth:0}]},{cutout:'60%',plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}),50);
+}
+
+function dbRenderRanking(el,w,rs){
+  const sorted=[...rs].sort((a,b)=>(b.complianceScore?.score||0)-(a.complianceScore?.score||0));
+  el.innerHTML=sorted.map((r,i)=>{const cs=r.complianceScore||{score:0,color:'#aaa'};
+    return`<div class="db-rank-row"><span class="db-rank-num">${['🥇','🥈','🥉'][i]||i+1}</span><span class="db-rank-name">${r.name.replace('ILIA - ','')}</span><span style="font-weight:900;color:${cs.color};font-size:.9rem">${cs.score}</span><div class="db-rank-pb"><div class="db-rank-fill" style="width:${cs.score}%;background:${cs.color}"></div></div>${dbSpark(r.totalVals||[],60,16,cs.color)}</div>`;
+  }).join('');
+}
+
+function dbRenderCoverage(el,w,rs){
+  el.innerHTML=`<div class="db-cb220"><canvas id="dbc-${w.id}-cov"></canvas></div>`;
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-cov`,'bar',{labels:rs.map(r=>r.name.replace('ILIA - ','')),datasets:[
+    {label:'T.Frigos %',data:rs.map(r=>Math.round((r.modules['Températures frigos']?.coverage||0)*100)),backgroundColor:'rgba(249,115,22,.8)',borderRadius:3},
+    {label:'Nettoyage %',data:rs.map(r=>Math.round((r.modules['Plans de nettoyage']?.coverage||0)*100)),backgroundColor:'rgba(34,197,94,.7)',borderRadius:3}
+  ]},{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true,max:100}}}),50);
+}
+
+function dbRenderAlerts(el,w,d){
+  const anoms=(d.anomalies||[]).slice(0,8);
+  if(!anoms.length){el.innerHTML='<div style="text-align:center;padding:18px;color:var(--muted);font-size:.8rem">✅ Aucune anomalie</div>';return;}
+  el.innerHTML=`<div style="max-height:280px;overflow-y:auto">`+anoms.map(a=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem"><span style="font-size:.95rem;flex-shrink:0">${a.icon||'⚠'}</span><div style="flex:1"><div style="font-weight:700">${a.title}</div><div style="color:var(--muted);font-size:.72rem">${a.restaurant}</div></div><span style="font-size:.66rem;font-weight:700;padding:1px 7px;border-radius:5px;height:fit-content;background:${a.severity==='critical'?'#fee2e2':a.severity==='high'?'var(--aml)':'var(--bll)'};color:${a.severity==='critical'?'#991b1b':a.severity==='high'?'#b45309':'#1d4ed8'}">${a.severity==='critical'?'Critique':a.severity==='high'?'Important':'Vigilance'}</span></div>`).join('')+'</div>';
+}
+
+function dbRenderScoreCards(el,w,rs){
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px">`+
+  rs.map(r=>{const cs=r.complianceScore||{score:0,color:'#aaa',label:'?'};
+    return`<div style="background:${cs.color}12;border:1px solid ${cs.color}33;border-radius:8px;padding:10px;text-align:center"><div style="font-weight:700;font-size:.78rem;margin-bottom:6px">${r.name.replace('ILIA - ','')}</div>${dbGauge(cs.score,70)}<span style="font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:6px;background:${cs.color}22;color:${cs.color}">${cs.label}</span></div>`;
+  }).join('')+'</div>';
+}
+
+function dbRenderBarByR(el,w,rs){
+  el.innerHTML=`<div class="db-cb220"><canvas id="dbc-${w.id}-rr"></canvas></div>`;
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-rr`,'bar',{labels:rs.map(r=>r.name.replace('ILIA - ','')),datasets:[{data:rs.map(r=>r.overall?.total||0),backgroundColor:rs.map(r=>r.complianceScore?.color||'var(--or)'),borderRadius:5}]},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{ticks:{font:{size:10}}}}}),50);
+}
+
+function dbRenderDow(el,w,d){
+  el.innerHTML=`<div class="db-cb220"><canvas id="dbc-${w.id}-dow"></canvas></div>`;
+  const avgs=d.dowAvgs||[];
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-dow`,'bar',{labels:['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],datasets:[{data:avgs,backgroundColor:avgs.map((_,i)=>i===0||i===6?'rgba(239,68,68,.7)':'rgba(59,130,246,.7)'),borderRadius:4}]},{plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}},y:{beginAtZero:true}}}),50);
+}
+
+function dbRenderSparklines(el,w,rs){
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">`+rs.map(r=>{const cs=r.complianceScore||{color:'#aaa'};
+    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9"><div style="width:100px;font-size:.75rem;font-weight:600;flex-shrink:0">${r.name.replace('ILIA - ','')}</div>${dbSpark(r.totalVals||[],100,20,cs.color)}<span style="font-size:.7rem;font-weight:700;color:${r.overall?.halfTrend>0.1?'var(--gr)':r.overall?.halfTrend<-0.1?'var(--re)':'var(--muted)'}">${r.overall?.halfTrend>0.1?'▲':r.overall?.halfTrend<-0.1?'▼':'→'}</span></div>`;
+  }).join('')+'</div>';
+}
+
+function dbRenderRiskMatrix(el,w,rs,d){
+  const q=(arr,bg,lbl)=>`<div style="background:${bg};border-radius:8px;padding:10px"><div style="font-size:.65rem;font-weight:700;color:var(--muted);margin-bottom:6px">${lbl}</div>${arr.length?arr.map(r=>`<div style="font-size:.78rem;font-weight:600;padding:2px 0">${(d.profiles[r.profile]||{}).icon||'•'} ${r.name.replace('ILIA - ','')}</div>`).join(''):'<span style="font-size:.72rem;color:var(--muted)">Aucun</span>'}</div>`;
+  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    ${q(rs.filter(r=>r.complianceScore?.score>=60&&r.overall?.halfTrend<-0.1),'rgba(245,158,11,.08)','⬆📉 Bon score · Déclin')}
+    ${q(rs.filter(r=>r.complianceScore?.score>=60&&r.overall?.halfTrend>=-0.1),'rgba(34,197,94,.06)','⬆📈 Bon score · Progression')}
+    ${q(rs.filter(r=>r.complianceScore?.score<60&&r.overall?.halfTrend<-0.1),'rgba(239,68,68,.08)','⬇📉 Score faible · Déclin')}
+    ${q(rs.filter(r=>r.complianceScore?.score<60&&r.overall?.halfTrend>=-0.1),'rgba(59,130,246,.06)','⬇📈 Score faible · Amélioration')}
+  </div>`;
+}
+
+function dbRenderCmpKpi(el,w,cmp,d){
+  if(!cmp){el.innerHTML='<div style="padding:14px;color:var(--muted);font-size:.78rem">Lancez une comparaison avec 2 périodes →</div>';return;}
+  const m=w.metric||'total';
+  const getV=(p,m)=>m==='score'?(p.groupScore||0):m==='alerts'?(p.anomalies||[]).length:Object.values(p.moduleTotals||{}).reduce((a,b)=>a+b,0);
+  const vA=getV(cmp.periodA,m),vB=getV(cmp.periodB,m),delta=vA-vB,pct=vB>0?Math.round((delta/vB)*100):0;
+  const col=delta>0?'var(--gr)':delta<0?'var(--re)':'var(--muted)';
+  el.innerHTML=`<div style="padding:12px;display:flex;gap:10px;align-items:center">
+    <div style="flex:1;text-align:center;background:var(--orl);border-radius:7px;padding:8px"><div style="font-size:.6rem;font-weight:700;color:var(--or);margin-bottom:3px">PÉRIODE A</div><div style="font-size:1.6rem;font-weight:900">${fN(vA)}</div></div>
+    <div style="text-align:center"><div style="font-weight:900;color:${col}">${delta>=0?'+':''}${fN(delta)}</div><div style="font-size:.7rem;color:${col};font-weight:700">${delta>=0?'▲':'▼'}${Math.abs(pct)}%</div></div>
+    <div style="flex:1;text-align:center;background:var(--bll);border-radius:7px;padding:8px"><div style="font-size:.6rem;font-weight:700;color:var(--bl);margin-bottom:3px">PÉRIODE B</div><div style="font-size:1.6rem;font-weight:900">${fN(vB)}</div></div>
+  </div>`;
+}
+
+function dbRenderCmpBars(el,w,cmp){
+  if(!cmp){el.innerHTML='<div style="padding:14px;color:var(--muted);font-size:.78rem">Lancez une comparaison →</div>';return;}
+  el.innerHTML=`<div class="db-cb260"><canvas id="dbc-${w.id}-cb"></canvas></div>`;
+  const ma=cmp.globalDelta?.modulesA||{},mb=cmp.globalDelta?.modulesB||{};
+  setTimeout(()=>mkDBChart(`dbc-${w.id}-cb`,'bar',{labels:DB_MOD_NAMES.map(m=>m.replace('Températures ','T.').replace('Plans de ','Plan ').replace('Étiquettes','Étiq.')),datasets:[{label:'Période A',data:DB_MOD_NAMES.map(m=>ma[m]||0),backgroundColor:'rgba(249,115,22,.8)',borderRadius:3},{label:'Période B',data:DB_MOD_NAMES.map(m=>mb[m]||0),backgroundColor:'rgba(30,136,229,.6)',borderRadius:3}]},{plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10}}},scales:{x:{ticks:{font:{size:9},maxRotation:30}},y:{beginAtZero:true}}}),50);
+}
+
+function dbRenderCmpTable(el,w,cmp){
+  if(!cmp){el.innerHTML='<div style="padding:14px;color:var(--muted);font-size:.78rem">Lancez une comparaison →</div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem"><thead><tr style="background:#f8fafc"><th style="padding:6px 10px;text-align:left;font-size:.68rem;text-transform:uppercase;color:var(--muted)">Site</th><th style="padding:6px 10px;text-align:right;color:var(--or)">Pér. A</th><th style="padding:6px 10px;text-align:right;color:var(--bl)">Pér. B</th><th style="padding:6px 10px;text-align:right">Évolution</th></tr></thead><tbody>`+
+  (cmp.comparison||[]).map(r=>{const dd=r.deltaTotal||0,col=dd>0?'var(--gr)':dd<0?'var(--re)':'var(--muted)';
+    return`<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:6px 10px;font-weight:700">${(cmp.periodA?.restaurants?.find(x=>x.id===r.id)||{name:r.id}).name?.replace('ILIA - ','')||r.id}</td><td style="padding:6px 10px;text-align:right;font-weight:700">${fN(r.totalA)}</td><td style="padding:6px 10px;text-align:right;color:var(--muted)">${fN(r.totalB)}</td><td style="padding:6px 10px;text-align:right;font-weight:700;color:${col}">${dd>=0?'+':''}${fN(dd)}</td></tr>`;
+  }).join('')+'</tbody></table></div>';
 }
 
 // ═══════════════════════════════ INIT ═════════════════════════════════════════
