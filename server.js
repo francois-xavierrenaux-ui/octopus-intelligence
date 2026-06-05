@@ -5,10 +5,21 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const BASE_URL = 'https://app.octopus-haccp.com';
-const GROUP_TOKEN = process.env.GROUP_TOKEN || 'zTLzMDgwItTuvwN4K4mHIPWH5uD3yqWWOz77ExYDDiJcLwsvFmsjxpAtkT2GF1hL';
+// Trim whitespace/newlines that can appear in Vercel env vars
+const GROUP_TOKEN = (process.env.GROUP_TOKEN || 'zTLzMDgwItTuvwN4K4mHIPWH5uD3yqWWOz77ExYDDiJcLwsvFmsjxpAtkT2GF1hL').trim();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ── Diagnostic endpoint ───────────────────────────────────────────────────────
+app.get('/api/ping', async (req, res) => {
+  try {
+    const tok = await getToken();
+    res.json({ ok: true, tokenLength: tok.length, env: !!process.env.GROUP_TOKEN, ts: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message, env: !!process.env.GROUP_TOKEN });
+  }
+});
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 let authToken = null, tokenExpiry = null;
