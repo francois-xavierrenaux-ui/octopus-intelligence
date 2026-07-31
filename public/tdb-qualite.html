@@ -1,4 +1,5 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Tableau de Bord Qualite - Octopus HACCP</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{--navy:#1a3b6b;--orange:#f97316;--bg:#f0f4f9;--card:#fff;--bd:#e2e8f0;--tx:#1e293b;--mu:#64748b;--gr:#16a34a;--gr-bg:#f0fdf4;--gr-bd:#bbf7d0;--re:#dc2626;--re-bg:#fef2f2;--re-bd:#fecaca;--am:#d97706;--am-bg:#fffbeb;--am-bd:#fde68a;--r:8px}
 @media(prefers-color-scheme:dark){:root{--bg:#0f1929;--card:#1a2537;--bd:#2d3f55;--tx:#e2e8f0;--mu:#94a3b8;--gr-bg:#052e16;--gr-bd:#166534;--re-bg:#1f0707;--re-bd:#7f1d1d;--am-bg:#1c1002;--am-bd:#78350f}}
@@ -119,6 +120,33 @@ canvas{display:block;max-width:100%}
 .action-meta span{background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--bd)}
 .actions-list{display:flex;flex-direction:column;gap:10px}
 .empty{text-align:center;padding:40px;color:var(--mu);font-size:13px}
+#mapFrance{height:520px;border-radius:0 0 var(--r) var(--r);z-index:1}
+.vue-toggle{display:flex;gap:6px;align-items:center}
+.vue-tog-btn{background:var(--bg);border:1px solid var(--bd);color:var(--mu);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer}
+.vue-tog-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.map-legend{display:flex;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--bd);flex-wrap:wrap;font-size:12px}
+.map-legend-item{display:flex;align-items:center;gap:5px}
+.map-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,0,0,.2)}
+.stats5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:14px 16px}
+.stat-card-val{font-size:24px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:3px}
+.stat-card-lbl{font-size:11px;color:var(--mu);font-weight:500}
+.stat-card-sub{font-size:11px;color:var(--mu);margin-top:2px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+.cal-wrap{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:16px}
+.cal-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-hdr{text-align:center;font-size:10px;color:var(--mu);font-weight:600;padding:2px}
+.cal-cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;cursor:default;position:relative}
+.cal-cell:hover .cal-tip{display:block}
+.cal-tip{display:none;position:absolute;bottom:calc(100%+4px);left:50%;transform:translateX(-50%);background:var(--tx);color:var(--card);font-size:10px;padding:3px 7px;border-radius:4px;white-space:nowrap;z-index:10;pointer-events:none}
+.anom-list{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);overflow:hidden}
+.anom-hdr{padding:12px 16px;border-bottom:1px solid var(--bd);font-size:13px;font-weight:600}
+.anom-item{padding:10px 16px;border-bottom:1px solid var(--bd);display:flex;gap:12px;align-items:flex-start;font-size:12px}
+.anom-item:last-child{border-bottom:none}
+.anom-icon{font-size:18px;flex-shrink:0;line-height:1.4}
+.anom-sev-c{color:var(--re)}.anom-sev-h{color:var(--am)}.anom-sev-m{color:#3b82f6}
+@media(max-width:900px){.stats5{grid-template-columns:repeat(3,1fr)}.grid3{grid-template-columns:1fr}}
 .g-ctrl-bar{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
 .g-types{display:flex;flex-wrap:wrap;gap:6px}
 .g-type-btn{background:var(--bg);border:1px solid var(--bd);color:var(--mu);border-radius:6px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
@@ -172,39 +200,90 @@ canvas{display:block;max-width:100%}
   <div class="card">
     <div class="card-hdr">
       <div class="card-hdr-t">Etablissements <span id="etabCount" class="chip chip-n" style="font-size:11px">&#8212;</span></div>
-      <input id="srch" type="text" placeholder="Rechercher un etablissement..." oninput="renderTbl()"
-        style="border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--bg);color:var(--tx);outline:none;width:220px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="srch" type="text" placeholder="Rechercher..." oninput="renderTbl()"
+          style="border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--bg);color:var(--tx);outline:none;width:180px">
+        <div class="vue-toggle">
+          <button class="vue-tog-btn active" id="vTbl" onclick="setVue('tbl')">&#9776; Tableau</button>
+          <button class="vue-tog-btn" id="vMap" onclick="setVue('map')">&#127757; Carte</button>
+        </div>
+      </div>
     </div>
-    <div class="tbl-wrap"><table>
-      <thead><tr>
-        <th onclick="srt('name')" id="th-name">Etablissement</th>
-        <th onclick="srt('score')" id="th-score">KPI Global</th>
-        <th onclick="srt('frigos')" id="th-frigos" class="dc">Frigos</th>
-        <th onclick="srt('nettoyage')" id="th-nettoyage" class="dc">Nettoyage</th>
-        <th onclick="srt('receptions')" id="th-receptions" class="dc">Receptions</th>
-        <th onclick="srt('etiquettes')" id="th-etiquettes" class="dc">Etiquettes</th>
-        <th onclick="srt('refroid')" id="th-refroid" class="dc">Refroid.</th>
-        <th onclick="srt('trend')" id="th-trend">Tendance</th>
-        <th onclick="srt('p1')" id="th-p1">P1</th>
-        <th>Profil</th>
-      </tr></thead>
-      <tbody id="tblBody"><tr><td colspan="10" class="empty">Chargement...</td></tr></tbody>
-    </table></div>
+    <div id="vueTbl">
+      <div class="tbl-wrap"><table>
+        <thead><tr>
+          <th onclick="srt('name')" id="th-name">Etablissement</th>
+          <th onclick="srt('score')" id="th-score">KPI Global</th>
+          <th onclick="srt('frigos')" id="th-frigos" class="dc">Frigos</th>
+          <th onclick="srt('nettoyage')" id="th-nettoyage" class="dc">Nettoyage</th>
+          <th onclick="srt('receptions')" id="th-receptions" class="dc">Receptions</th>
+          <th onclick="srt('etiquettes')" id="th-etiquettes" class="dc">Etiquettes</th>
+          <th onclick="srt('refroid')" id="th-refroid" class="dc">Refroid.</th>
+          <th onclick="srt('trend')" id="th-trend">Tendance</th>
+          <th onclick="srt('p1')" id="th-p1">P1</th>
+          <th>Profil</th>
+        </tr></thead>
+        <tbody id="tblBody"><tr><td colspan="10" class="empty">Chargement...</td></tr></tbody>
+      </table></div>
+    </div>
+    <div id="vueMap" style="display:none">
+      <div id="mapFrance"></div>
+      <div class="map-legend">
+        <strong style="font-size:12px;margin-right:4px">Score :</strong>
+        <div class="map-legend-item"><div class="map-dot" style="background:#16a34a"></div>&ge; 80 Excellent</div>
+        <div class="map-legend-item"><div class="map-dot" style="background:#f97316"></div>50&#8211;79 Moyen</div>
+        <div class="map-legend-item"><div class="map-dot" style="background:#dc2626"></div>&lt; 50 Insuffisant</div>
+        <div class="map-legend-item"><div class="map-dot" style="background:#94a3b8;border-style:dashed"></div>Position approx.</div>
+        <span id="mapStatus" style="margin-left:auto;color:var(--mu);font-size:11px"></span>
+      </div>
+    </div>
   </div>
 </div>
 
 <div id="tab-suivi" class="pane">
   <div class="sec-hdr">
-    <div><div class="sec-title">Activite journaliere</div><div class="sec-sub">Actions enregistrees par jour sur la periode</div></div>
+    <div><div class="sec-title">Activite journaliere</div><div class="sec-sub">Analyse detaillee des enregistrements sur la periode</div></div>
     <select class="sel" id="suiviEtab" onchange="drawSuivi()"><option value="all">Groupe complet</option></select>
   </div>
-  <div class="grid2">
-    <div class="prog-card"><div class="prog-val" id="suiviScore">&#8212;</div><div><div class="prog-lbl">Score de conformite</div><div class="prog-ch" id="suiviScoreLbl" style="color:var(--mu)">&#8212;</div></div></div>
-    <div class="prog-card"><div class="prog-val" id="suiviTotal">&#8212;</div><div><div class="prog-lbl">Actions totales</div><div class="prog-ch" id="suiviTotalSub" style="color:var(--mu)">&#8212;</div></div></div>
+
+  <div class="stats5">
+    <div class="stat-card"><div class="stat-card-val" id="stScore">&#8212;</div><div class="stat-card-lbl">Score conformite</div><div class="stat-card-sub" id="stScoreLbl"></div></div>
+    <div class="stat-card"><div class="stat-card-val" id="stTotal">&#8212;</div><div class="stat-card-lbl">Actions totales</div><div class="stat-card-sub" id="stTotalSub"></div></div>
+    <div class="stat-card"><div class="stat-card-val" id="stActifs">&#8212;</div><div class="stat-card-lbl">Jours actifs</div><div class="stat-card-sub" id="stActifsSub"></div></div>
+    <div class="stat-card"><div class="stat-card-val" id="stMax">&#8212;</div><div class="stat-card-lbl">Meilleur jour</div><div class="stat-card-sub" id="stMaxDate"></div></div>
+    <div class="stat-card"><div class="stat-card-val" id="stAvg">&#8212;</div><div class="stat-card-lbl">Moyenne / jour actif</div><div class="stat-card-sub" id="stAvgSub"></div></div>
   </div>
+
   <div class="chart-wrap">
-    <div class="chart-hdr"><div><div class="chart-title" id="suiviChartTitle">Activite journaliere</div><div class="chart-sub" id="suiviChartSub">&#8212;</div></div></div>
+    <div class="chart-hdr">
+      <div><div class="chart-title" id="suiviChartTitle">Activite journaliere</div><div class="chart-sub" id="suiviChartSub">&#8212;</div></div>
+      <select class="sel" id="suiviMode" onchange="drawSuivi()" style="font-size:12px">
+        <option value="bar">Barres</option>
+        <option value="line">Courbe</option>
+        <option value="cumul">Cumule</option>
+      </select>
+    </div>
     <canvas id="suiviC" height="260"></canvas>
+  </div>
+
+  <div class="grid3" style="margin-top:16px">
+    <div class="cal-wrap">
+      <div class="cal-title">&#128197; Calendrier thermique</div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <div class="chart-wrap" style="padding:16px">
+      <div class="cal-title">&#128197; Activite par jour de semaine</div>
+      <canvas id="dowC" height="180"></canvas>
+    </div>
+    <div class="anom-list" id="suiviAnom">
+      <div class="anom-hdr">&#9888; Anomalies detectees</div>
+      <div class="empty">Chargement...</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap" style="margin-top:16px">
+    <div class="chart-hdr"><div><div class="chart-title">Performance par module</div><div class="chart-sub" id="modSubTitle">Contribution de chaque module sur la periode</div></div></div>
+    <canvas id="modBarC" height="200"></canvas>
   </div>
 </div>
 
@@ -474,64 +553,219 @@ function renderObjectifs(){
 function isDark(){return document.documentElement.dataset.theme==='dark'||(document.documentElement.dataset.theme===undefined&&window.matchMedia('(prefers-color-scheme:dark)').matches)}
 
 function drawSuivi(){
-  var canvas=document.getElementById('suiviC');
-  if(!canvas||!API)return;
+  if(!API)return;
   var selId=document.getElementById('suiviEtab').value;
+  var mode=document.getElementById('suiviMode')?document.getElementById('suiviMode').value:'bar';
   var rStats=API.restaurantStats||{};
-  var dailyTotals,title,sub;
+  var dailyTotals,title,sub,score,scoreLabel,dowAvgsLocal,anomsLocal;
+  var allDates=((API.period&&API.period.allDates)||[]);
+  var dateLabels=allDates.map(function(d){return d.slice(5).replace('-','/')});
   if(selId==='all'){
     dailyTotals=API.groupDailyTotals||[];
+    score=(API.groupScore||0);scoreLabel=(API.groupLevelData&&API.groupLevelData.label)||'';
     title='Activite journaliere - Groupe complet';
-    sub='Score conformite groupe : '+(API.groupScore||0)+'/100 '+((API.groupLevelData&&API.groupLevelData.label)||'');
-    document.getElementById('suiviScore').textContent=(API.groupScore||0)+'/100';
-    document.getElementById('suiviScoreLbl').textContent=(API.groupLevelData&&API.groupLevelData.label)||'';
-    var tot=dailyTotals.reduce(function(a,b){return a+b},0);
-    document.getElementById('suiviTotal').textContent=tot.toLocaleString('fr');
-    document.getElementById('suiviTotalSub').textContent='sur '+((API.period&&API.period.allDates&&API.period.allDates.length)||0)+' jours';
+    sub='Score conformite groupe : '+score+'/100';
+    dowAvgsLocal=API.dowAvgs||Array(7).fill(0);
+    anomsLocal=(API.anomalies||[]).slice(0,8);
   }else{
     var rs=rStats[selId];if(!rs)return;
     dailyTotals=rs.totalVals||[];
+    score=(rs.complianceScore&&rs.complianceScore.score)||0;
+    scoreLabel=(rs.complianceScore&&rs.complianceScore.label)||'';
     title='Activite - '+rs.name;
-    sub='Score : '+((rs.complianceScore&&rs.complianceScore.score)||0)+'/100 - Profil : '+((rs.profileData&&rs.profileData.label)||'');
-    document.getElementById('suiviScore').textContent=((rs.complianceScore&&rs.complianceScore.score)||0)+'/100';
-    document.getElementById('suiviScoreLbl').textContent=(rs.complianceScore&&rs.complianceScore.label)||'';
-    document.getElementById('suiviTotal').textContent=((rs.overall&&rs.overall.total)||0).toLocaleString('fr');
-    document.getElementById('suiviTotalSub').textContent='actions sur la periode';
+    sub='Score : '+score+'/100 — Profil : '+((rs.profileData&&rs.profileData.label)||'');
+    /* compute per-restaurant dow averages */
+    var dt2=Array(7).fill(0),dc2=Array(7).fill(0);
+    allDates.forEach(function(d,i){var dow=new Date(d).getDay();dt2[dow]+=(dailyTotals[i]||0);dc2[dow]++;});
+    dowAvgsLocal=dt2.map(function(v,i){return dc2[i]>0?Math.round(v/dc2[i]):0;});
+    anomsLocal=(API.anomalies||[]).filter(function(a){return String(a.rid)===String(selId)}).slice(0,8);
   }
+  /* ---- stat cards ---- */
+  var n=dailyTotals.length;
+  var tot=dailyTotals.reduce(function(a,b){return a+b},0);
+  var actifs=dailyTotals.filter(function(v){return v>0}).length;
+  var maxV=Math.max.apply(null,dailyTotals.concat([0]));
+  var maxIdx=dailyTotals.indexOf(maxV);
+  var avgActif=actifs>0?Math.round(tot/actifs):0;
+  var scCol=score>=80?'#16a34a':score>=50?'#d97706':'#dc2626';
+  document.getElementById('stScore').textContent=score+'/100';
+  document.getElementById('stScore').style.color=scCol;
+  document.getElementById('stScoreLbl').textContent=scoreLabel;
+  document.getElementById('stTotal').textContent=tot.toLocaleString('fr');
+  document.getElementById('stTotalSub').textContent=n+' jours de periode';
+  document.getElementById('stActifs').textContent=actifs+'/'+n;
+  document.getElementById('stActifsSub').textContent=Math.round(actifs/Math.max(n,1)*100)+'% de jours avec activite';
+  document.getElementById('stMax').textContent=maxV.toLocaleString('fr');
+  document.getElementById('stMaxDate').textContent=dateLabels[maxIdx]||'';
+  document.getElementById('stAvg').textContent=avgActif.toLocaleString('fr');
+  document.getElementById('stAvgSub').textContent='actions / jour actif';
   document.getElementById('suiviChartTitle').textContent=title;
   document.getElementById('suiviChartSub').textContent=sub;
-  var dates=((API.period&&API.period.allDates)||[]).map(function(d){return d.slice(5).replace('-','/')});
-  var n=dailyTotals.length;if(!n)return;
-  var ctx=canvas.getContext('2d');
-  var W=canvas.parentElement.offsetWidth-40;
-  canvas.width=W;canvas.height=260;
-  var PAD={t:20,r:16,b:52,l:48};
-  var cw=W-PAD.l-PAD.r,ch=canvas.height-PAD.t-PAD.b;
-  var dk=isDark();
-  var gCol=dk?'#2d3f55':'#e2e8f0',txCol=dk?'#94a3b8':'#64748b';
-  ctx.clearRect(0,0,W,canvas.height);
-  var maxVal=Math.max.apply(null,dailyTotals.concat([1]));
-  ctx.font='11px system-ui';
-  [0,Math.round(maxVal*0.5),maxVal].forEach(function(v){
-    var y=PAD.t+ch-(v/maxVal)*ch;
-    ctx.beginPath();ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();
-    ctx.fillStyle=txCol;ctx.textAlign='right';ctx.fillText(v,PAD.l-5,y+4);
-  });
-  var barW=Math.max(2,Math.min(20,(cw/n)-2));
-  var step=cw/n;
-  dailyTotals.forEach(function(v,i){
-    var x=PAD.l+i*step+(step-barW)/2;
-    var bh=(v/maxVal)*ch;
-    var y=PAD.t+ch-bh;
-    ctx.fillStyle=v===0?(dk?'#2d3f55':'#e2e8f0'):v>maxVal*0.7?'#16a34a':v>maxVal*0.3?'#f97316':'#1a3b6b';
-    ctx.fillRect(x,y,barW,bh);
-  });
-  ctx.fillStyle=txCol;ctx.textAlign='center';ctx.font='10px system-ui';
-  var stepL=Math.max(1,Math.ceil(n/15));
-  dates.forEach(function(d,i){
-    if(i%stepL!==0&&i!==n-1)return;
-    ctx.fillText(d,PAD.l+i*step+step/2,PAD.t+ch+18);
-  });
+
+  /* ---- main chart ---- */
+  var canvas=document.getElementById('suiviC');
+  if(canvas&&n){
+    var W=canvas.parentElement.offsetWidth-40;if(W<200)W=600;
+    canvas.width=W;canvas.height=260;
+    var ctx=canvas.getContext('2d');
+    var PAD={t:24,r:16,b:52,l:52};
+    var cw=W-PAD.l-PAD.r,ch=canvas.height-PAD.t-PAD.b;
+    var dk=isDark(),gCol=dk?'#2d3f55':'#e2e8f0',txCol=dk?'#94a3b8':'#64748b';
+    ctx.clearRect(0,0,W,canvas.height);
+    var maxVal=Math.max.apply(null,dailyTotals.concat([1]));
+    var avg2=tot/Math.max(n,1);
+    [0,Math.round(maxVal*0.25),Math.round(maxVal*0.5),Math.round(maxVal*0.75),maxVal].forEach(function(v){
+      var y=PAD.t+ch-(v/maxVal)*ch;
+      ctx.beginPath();ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=txCol;ctx.textAlign='right';ctx.font='10px system-ui';ctx.fillText(v,PAD.l-5,y+4);
+    });
+    /* avg line */
+    var avgY=PAD.t+ch-(avg2/maxVal)*ch;
+    ctx.beginPath();ctx.strokeStyle='rgba(249,115,22,0.6)';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);ctx.moveTo(PAD.l,avgY);ctx.lineTo(PAD.l+cw,avgY);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#f97316';ctx.font='9px system-ui';ctx.textAlign='left';ctx.fillText('moy '+Math.round(avg2),PAD.l+4,avgY-4);
+
+    if(mode==='bar'||mode==='cumul'){
+      var barW2=Math.max(2,Math.min(28,(cw/n)-2));
+      var step2=cw/n;
+      var cumul=0;
+      dailyTotals.forEach(function(v,i){
+        var plotV=mode==='cumul'?(cumul+=v,cumul):v;
+        var pctMax=mode==='cumul'?tot:maxVal;
+        var x=PAD.l+i*step2+(step2-barW2)/2;
+        var bh=Math.max(1,(plotV/Math.max(pctMax,1))*ch);
+        var y=PAD.t+ch-bh;
+        var col=v===0?(dk?'#1e2f43':'#f1f5f9'):v>=maxVal*0.7?'#16a34a':v>=maxVal*0.3?'#f97316':'#1a3b6b';
+        if(mode==='cumul')col='#1a3b6b';
+        ctx.fillStyle=col;ctx.fillRect(x,y,barW2,bh);
+      });
+    }else{
+      /* line/area */
+      var pts2=dailyTotals.map(function(v,i){return{x:PAD.l+(i/(n-1||1))*cw,y:PAD.t+ch-(v/maxVal)*ch};});
+      ctx.beginPath();ctx.moveTo(pts2[0].x,pts2[0].y);
+      for(var i=1;i<pts2.length;i++){var cpx=(pts2[i-1].x+pts2[i].x)/2;ctx.bezierCurveTo(cpx,pts2[i-1].y,cpx,pts2[i].y,pts2[i].x,pts2[i].y);}
+      ctx.strokeStyle='#1a3b6b';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.lineTo(pts2[pts2.length-1].x,PAD.t+ch);ctx.lineTo(pts2[0].x,PAD.t+ch);ctx.closePath();
+      ctx.fillStyle='rgba(26,59,107,0.12)';ctx.fill();
+      pts2.forEach(function(p,i){if(dailyTotals[i]===maxV){ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle='#f97316';ctx.fill();}});
+    }
+    ctx.fillStyle=txCol;ctx.textAlign='center';ctx.font='10px system-ui';
+    var stepL2=Math.max(1,Math.ceil(n/14));
+    allDates.forEach(function(d,i){
+      if(i%stepL2!==0&&i!==n-1)return;
+      var dow2=new Date(d).getDay();
+      ctx.fillStyle=dow2===0||dow2===6?'#f97316':txCol;
+      ctx.fillText(dateLabels[i],PAD.l+(i/(n-1||1))*cw,PAD.t+ch+16);
+    });
+  }
+
+  /* ---- calendar heatmap ---- */
+  var grid=document.getElementById('calGrid');
+  if(grid){
+    var DOWS=['L','M','M','J','V','S','D'];
+    var calHTML=DOWS.map(function(d){return'<div class="cal-day-hdr">'+d+'</div>'}).join('');
+    /* find first monday */
+    var firstDate=allDates[0]?new Date(allDates[0]):new Date();
+    var firstDow=(firstDate.getDay()+6)%7; /* 0=Mon */
+    for(var p=0;p<firstDow;p++)calHTML+='<div></div>';
+    allDates.forEach(function(d,i){
+      var v=dailyTotals[i]||0;
+      var pct=maxV>0?v/maxV:0;
+      var bg=v===0?(dk?'#1e2f43':'#f1f5f9'):pct>0.7?'#16a34a':pct>0.3?'#f97316':'#1a3b6b';
+      var alpha=v===0?1:0.4+pct*0.6;
+      var lbl=d.slice(5).replace('-','/');
+      calHTML+='<div class="cal-cell" style="background:'+bg+';opacity:'+alpha.toFixed(2)+'" title="'+lbl+' : '+v+' actions">'+(v>0?v:'')+'<span class="cal-tip">'+lbl+' : '+v+'</span></div>';
+    });
+    grid.innerHTML=calHTML;
+  }
+
+  /* ---- day of week chart ---- */
+  var dowC=document.getElementById('dowC');
+  if(dowC){
+    var DOW_NAMES=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+    var W3=dowC.parentElement.offsetWidth-32;if(W3<100)W3=300;
+    dowC.width=W3;dowC.height=180;
+    var ctx3=dowC.getContext('2d');ctx3.clearRect(0,0,W3,180);
+    var PAD3={t:10,r:10,b:40,l:40};
+    var cw3=W3-PAD3.l-PAD3.r,ch3=180-PAD3.t-PAD3.b;
+    var dk3=isDark(),gC3=dk3?'#2d3f55':'#e2e8f0',tC3=dk3?'#94a3b8':'#64748b';
+    var maxD=Math.max.apply(null,dowAvgsLocal.concat([1]));
+    /* reorder Sun=6 */
+    var ordered=[1,2,3,4,5,6,0].map(function(d){return{l:DOW_NAMES[d],v:dowAvgsLocal[d]||0,we:d===0||d===6};});
+    var bW3=Math.max(8,(cw3/7)-6);
+    ordered.forEach(function(d,i){
+      var x=PAD3.l+i*(cw3/7)+(cw3/7-bW3)/2;
+      var bh=Math.max(d.v>0?3:0,(d.v/maxD)*ch3);
+      var y=PAD3.t+ch3-bh;
+      ctx3.fillStyle=d.we?'#f97316':'#1a3b6b';ctx3.globalAlpha=0.85;
+      ctx3.fillRect(x,y,bW3,bh);ctx3.globalAlpha=1;
+      ctx3.fillStyle=tC3;ctx3.font='10px system-ui';ctx3.textAlign='center';
+      ctx3.fillText(d.l,x+bW3/2,PAD3.t+ch3+14);
+      if(d.v>0)ctx3.fillText(d.v,x+bW3/2,y-3);
+    });
+    ctx3.beginPath();ctx3.strokeStyle=gC3;ctx3.lineWidth=1;ctx3.moveTo(PAD3.l,PAD3.t+ch3);ctx3.lineTo(PAD3.l+cw3,PAD3.t+ch3);ctx3.stroke();
+  }
+
+  /* ---- anomalies ---- */
+  var anomDiv=document.getElementById('suiviAnom');
+  if(anomDiv){
+    var SEV={'critical':'anom-sev-c','high':'anom-sev-h','medium':'anom-sev-m','low':'c-m'};
+    if(!anomsLocal||!anomsLocal.length){
+      anomDiv.innerHTML='<div class="anom-hdr">&#9888; Anomalies</div><div class="empty" style="padding:20px">&#9989; Aucune anomalie detectee</div>';
+    }else{
+      anomDiv.innerHTML='<div class="anom-hdr">&#9888; Anomalies <span class="chip chip-w" style="font-size:11px;margin-left:4px">'+anomsLocal.length+'</span></div>'+
+        anomsLocal.map(function(a){return'<div class="anom-item"><div class="anom-icon '+(SEV[a.severity]||'')+'">'+a.icon+'</div><div><div style="font-weight:600;font-size:12px">'+a.title+'</div><div style="color:var(--mu);font-size:11px;margin-top:2px">'+a.desc+'</div>'+(a.action?'<div style="color:var(--navy);font-size:11px;margin-top:3px;font-style:italic">'+a.action+'</div>':'')+'</div></div>';}).join('');
+    }
+  }
+
+  /* ---- module bars ---- */
+  var modC=document.getElementById('modBarC');
+  if(modC&&API){
+    var MODS=[
+      {k:'Températures frigos',l:'Frigos',col:'#1a3b6b'},
+      {k:'Plans de nettoyage',l:'Nettoyage',col:'#16a34a'},
+      {k:'Réceptions',l:'Receptions',col:'#f97316'},
+      {k:'Étiquettes DLC',l:'Etiquettes',col:'#0ea5e9'},
+      {k:'Étiq. imprimées',l:'Etiq. imp.',col:'#8b5cf6'},
+      {k:'Refroidissement',l:'Refroid.',col:'#06b6d4'},
+      {k:'Réchauffage',l:'Rechauffage',col:'#d97706'},
+      {k:'Gestion déchets',l:'Dechets',col:'#94a3b8'},
+    ];
+    var modVals;
+    if(selId==='all'){
+      modVals=MODS.map(function(m){return(API.moduleTotals&&API.moduleTotals[m.k])||0;});
+    }else{
+      var rs2=rStats[selId];
+      modVals=MODS.map(function(m){return rs2&&rs2.modules[m.k]?rs2.modules[m.k].total:0;});
+    }
+    var W4=modC.parentElement.offsetWidth-40;if(W4<200)W4=600;
+    modC.width=W4;modC.height=200;
+    var ctx4=modC.getContext('2d');ctx4.clearRect(0,0,W4,200);
+    var PAD4={t:16,r:16,b:48,l:52};
+    var cw4=W4-PAD4.l-PAD4.r,ch4=200-PAD4.t-PAD4.b;
+    var dk4=isDark(),gC4=dk4?'#2d3f55':'#e2e8f0',tC4=dk4?'#94a3b8':'#64748b';
+    var maxM=Math.max.apply(null,modVals.concat([1]));
+    var totM=modVals.reduce(function(a,b){return a+b},0)||1;
+    [0,Math.round(maxM*0.5),maxM].forEach(function(v){
+      var y=PAD4.t+ch4-(v/maxM)*ch4;
+      ctx4.beginPath();ctx4.strokeStyle=gC4;ctx4.lineWidth=1;ctx4.setLineDash([3,3]);ctx4.moveTo(PAD4.l,y);ctx4.lineTo(PAD4.l+cw4,y);ctx4.stroke();ctx4.setLineDash([]);
+      ctx4.fillStyle=tC4;ctx4.textAlign='right';ctx4.font='10px system-ui';ctx4.fillText(v,PAD4.l-5,y+4);
+    });
+    var bW4=Math.max(8,(cw4/MODS.length)-8);
+    MODS.forEach(function(m,i){
+      var v=modVals[i];
+      var x=PAD4.l+i*(cw4/MODS.length)+(cw4/MODS.length-bW4)/2;
+      var bh=Math.max(v>0?3:0,(v/maxM)*ch4);
+      var y=PAD4.t+ch4-bh;
+      ctx4.fillStyle=m.col;ctx4.globalAlpha=0.85;ctx4.fillRect(x,y,bW4,bh);ctx4.globalAlpha=1;
+      ctx4.fillStyle=tC4;ctx4.font='10px system-ui';ctx4.textAlign='center';
+      ctx4.fillText(m.l,x+bW4/2,PAD4.t+ch4+14);
+      if(v>0){ctx4.fillStyle=tC4;ctx4.fillText(v,x+bW4/2,y-4);}
+      /* pct badge */
+      var pct2=Math.round(v/totM*100);
+      if(pct2>=5){ctx4.fillStyle='rgba(255,255,255,0.9)';ctx4.font='bold 9px system-ui';ctx4.fillText(pct2+'%',x+bW4/2,y+bh/2+3);}
+    });
+    document.getElementById('modSubTitle').textContent='Total : '+totM.toLocaleString('fr')+' actions sur la periode';
+  }
 }
 
 /* ---- Graphiques engine ---- */
@@ -949,6 +1183,7 @@ function setTab(t){
   document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+t)});
   if(t==='suivi')setTimeout(drawSuivi,50);
   if(t==='graphiques'){buildGOpts();setTimeout(drawChart,50);}
+  if(t==='vue'&&VUE_MODE==='map'&&leafMap)setTimeout(function(){leafMap.invalidateSize();},80);
 }
 
 function exportCSV(){
@@ -963,8 +1198,97 @@ function showLoader(txt){var l=document.getElementById('loader');l.classList.rem
 function showLoaderError(msg){document.getElementById('loader').innerHTML='<div class="err-box">&#10060; '+msg+'<br><br><button class="btn" onclick="hideLoader();loadData()">&#8635; Reessayer</button></div>'}
 function hideLoader(){document.getElementById('loader').classList.add('hidden')}
 
+/* ---- Vue toggle ---- */
+var VUE_MODE='tbl',leafMap=null,GEO={},GEO_LOADING=false;
+function setVue(m){
+  VUE_MODE=m;
+  document.getElementById('vTbl').classList.toggle('active',m==='tbl');
+  document.getElementById('vMap').classList.toggle('active',m==='map');
+  document.getElementById('vueTbl').style.display=m==='tbl'?'':'none';
+  document.getElementById('vueMap').style.display=m==='map'?'':'none';
+  if(m==='map'){
+    if(!leafMap)initMap();
+    if(ROWS.length&&!Object.keys(GEO).length&&!GEO_LOADING)loadGeoData();
+    else if(Object.keys(GEO).length)updateMapMarkers();
+  }
+}
+
+function initMap(){
+  if(leafMap||typeof L==='undefined')return;
+  leafMap=L.map('mapFrance',{center:[46.5,2.5],zoom:6,zoomControl:true});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom:18
+  }).addTo(leafMap);
+}
+
+function loadGeoData(){
+  if(GEO_LOADING)return;
+  GEO_LOADING=true;
+  var n=ROWS.length;
+  document.getElementById('mapStatus').textContent='Geolocalisation en cours... ('+n+' etablissements)';
+  fetch('/api/geocode')
+    .then(function(r){return r.json();})
+    .then(function(data){GEO=data;GEO_LOADING=false;document.getElementById('mapStatus').textContent='';updateMapMarkers();})
+    .catch(function(e){GEO_LOADING=false;document.getElementById('mapStatus').textContent='Erreur geo : '+e.message;});
+}
+
+var MAP_MARKERS=[];
+function updateMapMarkers(){
+  if(!leafMap||typeof L==='undefined')return;
+  MAP_MARKERS.forEach(function(m){m.remove();});MAP_MARKERS=[];
+  var bounds=[];
+  ROWS.forEach(function(r){
+    var geo=GEO[r.id];if(!geo)return;
+    var sc=r.score;
+    var col=sc>=80?'#16a34a':sc>=50?'#f97316':'#dc2626';
+    var size=sc>=80?14:sc>=50?12:12;
+    var icon=L.divIcon({
+      className:'',
+      html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+col+';border:2px solid '+(geo.fallback?'#94a3b8':'rgba(0,0,0,.25)')+';box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',
+      iconSize:[size,size],iconAnchor:[size/2,size/2]
+    });
+    var ap=(API.actionPlan||[]).filter(function(a){return a.site===r.name;});
+    var p1=ap.filter(function(a){return a.priority==='P1';}).length;
+    var p2=ap.filter(function(a){return a.priority==='P2';}).length;
+    var trendH=r.trend>0?'<span style="color:#16a34a">&#9650; +'+r.trend+'%</span>':r.trend<0?'<span style="color:#dc2626">&#9660; '+r.trend+'%</span>':'<span style="color:#94a3b8">stable</span>';
+    var popup='<div style="font-family:system-ui;min-width:200px">'+
+      '<div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#1a3b6b">'+r.name+'</div>'+
+      '<div style="font-size:20px;font-weight:800;color:'+col+'">'+sc+'/100</div>'+
+      '<div style="font-size:11px;color:#64748b;margin-bottom:6px">'+r.scoreLabel+'</div>'+
+      '<table style="font-size:11px;width:100%;border-collapse:collapse">'+
+      '<tr><td style="color:#64748b;padding:2px 0">Frigos</td><td style="text-align:right;font-weight:600">'+(r.frigos!==null?r.frigos+'%':'—')+'</td></tr>'+
+      '<tr><td style="color:#64748b;padding:2px 0">Nettoyage</td><td style="text-align:right;font-weight:600">'+(r.nettoyage!==null?r.nettoyage+'%':'—')+'</td></tr>'+
+      '<tr><td style="color:#64748b;padding:2px 0">Receptions</td><td style="text-align:right;font-weight:600">'+(r.receptions!==null?r.receptions:'—')+'</td></tr>'+
+      '<tr><td style="color:#64748b;padding:2px 0">Etiquettes</td><td style="text-align:right;font-weight:600">'+(r.etiquettes!==null?r.etiquettes:'—')+'</td></tr>'+
+      '</table>'+
+      '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;font-size:11px">'+
+      '<span>Tendance : '+trendH+'</span>'+
+      (p1>0?'<span style="background:#fef2f2;color:#dc2626;padding:1px 6px;border-radius:10px;font-weight:600">'+p1+' action'+(p1>1?'s':'')+' P1</span>':'')+
+      (p2>0?'<span style="background:#fffbeb;color:#d97706;padding:1px 6px;border-radius:10px;font-weight:600">'+p2+' P2</span>':'')+
+      '</div>'+
+      '<div style="margin-top:5px;font-size:11px;color:#94a3b8">'+r.profileData.icon+' '+r.profileData.label+'</div>'+
+      (geo.fallback?'<div style="margin-top:4px;font-size:10px;color:#94a3b8;font-style:italic">Position approximative</div>':'')+
+      '</div>';
+    var marker=L.marker([geo.lat,geo.lng],{icon:icon}).addTo(leafMap);
+    marker.bindPopup(popup,{maxWidth:260});
+    marker.on('mouseover',function(){this.openPopup();});
+    MAP_MARKERS.push(marker);
+    bounds.push([geo.lat,geo.lng]);
+  });
+  if(bounds.length>1)leafMap.fitBounds(bounds,{padding:[30,30]});
+  else if(bounds.length===1)leafMap.setView(bounds[0],12);
+}
+
 var rT;
-window.addEventListener('resize',function(){clearTimeout(rT);rT=setTimeout(function(){var a=document.querySelector('.pane.active');if(a&&a.id==='tab-suivi')drawSuivi();if(a&&a.id==='tab-graphiques')drawChart()},150)});
+window.addEventListener('resize',function(){clearTimeout(rT);rT=setTimeout(function(){
+  var a=document.querySelector('.pane.active');
+  if(a&&a.id==='tab-suivi')drawSuivi();
+  if(a&&a.id==='tab-graphiques')drawChart();
+  if(leafMap&&VUE_MODE==='map')leafMap.invalidateSize();
+},150)});
 
 loadData();
-</script></body></html>
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</body></html>
