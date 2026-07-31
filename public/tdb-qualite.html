@@ -1,0 +1,649 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Tableau de Bord Qualité — SPOK</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --navy:#1a3b6b;--navy-dk:#0f2447;--orange:#f97316;
+  --bg:#f0f4f9;--card:#ffffff;--bd:#e2e8f0;
+  --tx:#1e293b;--mu:#64748b;
+  --gr:#16a34a;--gr-bg:#f0fdf4;--gr-bd:#bbf7d0;
+  --re:#dc2626;--re-bg:#fef2f2;--re-bd:#fecaca;
+  --am:#d97706;--am-bg:#fffbeb;--am-bd:#fde68a;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0f1929;--card:#1a2537;--bd:#2d3f55;--tx:#e2e8f0;--mu:#94a3b8;
+  --gr-bg:#052e16;--gr-bd:#166534;--re-bg:#1f0707;--re-bd:#7f1d1d;--am-bg:#1c1002;--am-bd:#78350f;
+}}
+:root[data-theme=dark]{--bg:#0f1929;--card:#1a2537;--bd:#2d3f55;--tx:#e2e8f0;--mu:#94a3b8;--gr-bg:#052e16;--gr-bd:#166534;--re-bg:#1f0707;--re-bd:#7f1d1d;--am-bg:#1c1002;--am-bd:#78350f;}
+:root[data-theme=light]{--bg:#f0f4f9;--card:#ffffff;--bd:#e2e8f0;--tx:#1e293b;--mu:#64748b;--gr-bg:#f0fdf4;--gr-bd:#bbf7d0;--re-bg:#fef2f2;--re-bd:#fecaca;--am-bg:#fffbeb;--am-bd:#fde68a;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* HEADER */
+.hdr{background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;height:56px;position:sticky;top:0;z-index:200}
+.hdr-back{background:none;border:none;color:var(--navy);cursor:pointer;font-size:18px;padding:8px 10px;border-radius:6px;line-height:1}
+.hdr-back:hover{background:var(--bg)}
+.hdr-mid{flex:1;text-align:center}
+.hdr-title{font-size:15px;font-weight:700;color:var(--navy)}
+.hdr-sub{font-size:11px;color:var(--mu)}
+.hdr-badge{background:var(--navy);color:#fff;border-radius:6px;font-size:11px;font-weight:800;padding:3px 10px;letter-spacing:.5px}
+
+/* TOOLBAR */
+.toolbar{background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:8px 16px;flex-wrap:wrap}
+.period-box{display:flex;align-items:center;gap:4px;border:1px solid var(--bd);border-radius:6px;padding:4px 10px;background:var(--bg)}
+.period-box button{background:none;border:none;cursor:pointer;color:var(--navy);padding:2px 6px;border-radius:4px;font-size:14px;line-height:1}
+.period-box button:hover{background:var(--bd)}
+.period-lbl{font-size:13px;font-weight:500;white-space:nowrap}
+.period-gran{border:none;background:none;color:var(--mu);font-size:12px;cursor:pointer;outline:none;margin-left:4px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--bd);background:var(--card);color:var(--tx);transition:background .12s}
+.btn:hover{background:var(--bg)}
+.ml{margin-left:auto}
+.tog-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mu)}
+.sw{width:36px;height:20px;background:var(--bd);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.sw.on{background:var(--navy)}
+.sw::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s}
+.sw.on::after{left:18px}
+
+/* SUMMARY */
+.summary{background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;padding:10px 16px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:12px;font-weight:500;border:1px solid}
+.chip-n{background:var(--bg);border-color:var(--bd);color:var(--tx)}
+.chip-w{background:var(--am-bg);border-color:var(--am-bd);color:var(--am)}
+.chip-d{background:var(--re-bg);border-color:var(--re-bd);color:var(--re)}
+.chip-g{background:var(--gr-bg);border-color:var(--gr-bd);color:var(--gr)}
+.kpi-grp{display:flex;align-items:center;gap:8px;margin-left:16px;padding-left:16px;border-left:2px solid var(--bd)}
+.kpi-grp-val{font-size:26px;font-weight:800;color:var(--navy);line-height:1}
+.kpi-grp-lbl{font-size:11px;color:var(--mu);line-height:1.4}
+
+/* TABS */
+.tabs-nav{background:var(--card);border-bottom:2px solid var(--bd);display:flex;padding:0 16px;overflow-x:auto}
+.tabs-nav::-webkit-scrollbar{display:none}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:12px 14px;font-size:13px;font-weight:500;color:var(--mu);cursor:pointer;white-space:nowrap;transition:color .12s}
+.tab-btn:hover{color:var(--tx)}
+.tab-btn.active{color:var(--orange);border-bottom-color:var(--orange);font-weight:600}
+
+/* PANES */
+.pane{display:none;padding:20px;animation:fi .15s}
+.pane.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);overflow:hidden}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bd);gap:8px;flex-wrap:wrap}
+.card-hdr-t{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);padding:10px 12px;border-bottom:1px solid var(--bd);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--tx)}
+thead th.sa::after{content:' ↑';color:var(--orange)}
+thead th.sd::after{content:' ↓';color:var(--orange)}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--bd);font-size:13px;font-variant-numeric:tabular-nums;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,0,0,.015)}
+tbody tr.fe td{color:var(--mu);font-style:italic}
+.etab-a{color:var(--tx);text-decoration:none;font-weight:500}
+.etab-a:hover{color:var(--navy);text-decoration:underline}
+.fe-tag{font-size:10px;color:var(--mu);background:var(--bg);border:1px solid var(--bd);padding:1px 5px;border-radius:4px;margin-left:4px;font-style:normal;vertical-align:middle}
+
+/* KPI */
+.kpi-cell{min-width:80px}
+.kpi-score{font-size:14px;font-weight:700;margin-bottom:3px}
+.kpi-bar-bg{height:4px;background:var(--bd);border-radius:2px;overflow:hidden;width:72px}
+.kpi-bar{height:100%;border-radius:2px}
+.c-g{color:var(--gr)}.c-a{color:var(--am)}.c-r{color:var(--re)}.c-m{color:var(--mu)}
+.bg-g{background:var(--gr)}.bg-a{background:var(--am)}.bg-r{background:var(--re)}
+.mod-pct{display:inline-block;padding:2px 7px;border-radius:10px;font-size:12px;font-weight:600}
+.mpg{background:var(--gr-bg);color:var(--gr)}.mpa{background:var(--am-bg);color:var(--am)}.mpr{background:var(--re-bg);color:var(--re)}
+.mn{color:var(--mu)}
+.trend{font-size:12px;display:flex;align-items:center;gap:2px;font-weight:600}
+.t-u{color:var(--gr)}.t-d{color:var(--re)}.t-f{color:var(--mu)}
+.p1b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700}
+.p1-n{background:var(--re-bg);color:var(--re);border:1px solid var(--re-bd)}
+.p1-0{background:var(--bg);color:var(--mu);border:1px solid var(--bd)}
+
+/* SECTION */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sec-title{font-size:15px;font-weight:700}
+.sec-sub{font-size:12px;color:var(--mu);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.prog-card{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:16px;display:flex;align-items:center;gap:16px}
+.prog-val{font-size:30px;font-weight:800;color:var(--navy);line-height:1;flex-shrink:0}
+.prog-lbl{font-size:13px;font-weight:600;margin-bottom:4px}
+.prog-ch{font-size:12px;font-weight:600}
+.chart-wrap{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:20px}
+.chart-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:8px;flex-wrap:wrap}
+.chart-title{font-size:14px;font-weight:600}
+.chart-sub{font-size:12px;color:var(--mu);margin-top:2px}
+canvas{display:block;max-width:100%}
+.sel{border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:13px;background:var(--card);color:var(--tx);outline:none;cursor:pointer}
+
+/* MODULE CARDS */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.mod-card{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);overflow:hidden}
+.mod-hdr{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mod-hdr.orange{background:#f97316;color:#fff}
+.mod-hdr.navy{background:#1a3b6b;color:#fff}
+.mod-hdr.green{background:#166534;color:#fff}
+.mod-hdr.teal{background:#0f766e;color:#fff}
+.mod-hdr-title{font-size:13px;font-weight:600}
+.mod-hdr-badge{background:rgba(255,255,255,.22);padding:2px 8px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
+.mod-hdr-alert{background:rgba(220,38,38,.3);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:700}
+.mod-body{display:flex}
+.mod-col{flex:1;padding:11px 14px;border-right:1px solid var(--bd)}
+.mod-col:last-child{border-right:none}
+.mod-col-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);margin-bottom:7px}
+.mod-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0}
+.mod-row-n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:6px}
+.mod-row-s{font-weight:600;flex-shrink:0}
+
+/* OBJECTIFS */
+.obj-s{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.obj-ok{background:var(--gr-bg);color:var(--gr)}.obj-w{background:var(--am-bg);color:var(--am)}.obj-f{background:var(--re-bg);color:var(--re)}
+
+/* WIDGETS */
+.w-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.w-card{background:var(--card);border:2px solid var(--bd);border-radius:var(--r);padding:16px;cursor:pointer;transition:border-color .15s}
+.w-card.on{border-color:var(--navy)}
+.w-card:hover{border-color:var(--orange)}
+.w-icon{font-size:22px;margin-bottom:8px}
+.w-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.w-desc{font-size:11px;color:var(--mu);line-height:1.4}
+.w-foot{margin-top:10px;display:flex;justify-content:flex-end}
+.b-on{background:var(--navy);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:2px 8px}
+.b-off{background:var(--bd);color:var(--mu);border-radius:10px;font-size:10px;font-weight:700;padding:2px 8px}
+
+.mt16{margin-top:16px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.hdr-badge{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <button class="hdr-back">←</button>
+  <div class="hdr-mid">
+    <div class="hdr-title">📊 Tableau de Bord Qualité</div>
+    <div class="hdr-sub">SPOK</div>
+  </div>
+  <div class="hdr-badge">SPOK</div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <div class="period-box">
+    <button onclick="shiftP(-1)">‹</button>
+    <span class="period-lbl" id="pLbl">Du lun. 27/07/2026 au dim. 02/08/2026</span>
+    <button onclick="shiftP(1)">›</button>
+    <select class="period-gran" id="pGran">
+      <option value="w">Semaine</option>
+      <option value="m">Mois</option>
+      <option value="q">Trimestre</option>
+    </select>
+  </div>
+  <button class="btn">⚖ Filtrer</button>
+  <button class="btn">↑ Exporter</button>
+  <div class="tog-row ml">
+    Afficher les détails
+    <div class="sw on" id="detSw" onclick="togDet()"></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="summary">
+  <span class="chip chip-n">📍 <strong>25</strong> établissements</span>
+  <span class="chip chip-n">⚠ <strong>11</strong> sans activité</span>
+  <span class="chip chip-d">🚨 <strong>8</strong> en difficulté</span>
+  <span class="chip chip-w">🌡 <strong>19</strong> alertes frigos</span>
+  <span class="chip chip-g">✅ <strong>5</strong> top performers</span>
+  <div class="kpi-grp">
+    <div class="kpi-grp-val">64%</div>
+    <div class="kpi-grp-lbl">KPI Groupe<br>semaine en cours</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<nav class="tabs-nav">
+  <button class="tab-btn active" data-tab="vue" onclick="setTab('vue')">Vue d'ensemble</button>
+  <button class="tab-btn" data-tab="suivi" onclick="setTab('suivi')">Suivi KPI</button>
+  <button class="tab-btn" data-tab="modules" onclick="setTab('modules')">Par module</button>
+  <button class="tab-btn" data-tab="objectifs" onclick="setTab('objectifs')">Objectifs</button>
+  <button class="tab-btn" data-tab="graphiques" onclick="setTab('graphiques')">Graphiques</button>
+  <button class="tab-btn" data-tab="tdb" onclick="setTab('tdb')">TDB Perso.</button>
+</nav>
+
+<!-- VUE D'ENSEMBLE -->
+<div id="tab-vue" class="pane active">
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-hdr-t">Établissements <span class="chip chip-n" style="font-size:11px">25 étab.</span></div>
+      <input id="srch" type="text" placeholder="Rechercher…" oninput="renderTbl()"
+        style="border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--bg);color:var(--tx);outline:none;width:180px">
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="srt('nom')" id="th-nom">Établissement</th>
+          <th onclick="srt('kpi')" id="th-kpi">KPI Global</th>
+          <th onclick="srt('frigos')" id="th-frigos" class="dc">Frigos</th>
+          <th onclick="srt('nettoyage')" id="th-nettoyage" class="dc">Nettoyage</th>
+          <th onclick="srt('receptions')" id="th-receptions" class="dc">Réceptions</th>
+          <th onclick="srt('etiquettes')" id="th-etiquettes" class="dc">Étiquettes</th>
+          <th onclick="srt('refroidissement')" id="th-refroidissement" class="dc">Refroidissement</th>
+          <th onclick="srt('tendance')" id="th-tendance">Tendance</th>
+          <th onclick="srt('p1')" id="th-p1">P1</th>
+        </tr></thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SUIVI KPI -->
+<div id="tab-suivi" class="pane">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Suivi de l'évolution du KPI</div><div class="sec-sub">Score qualité par semaine</div></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select class="sel" id="suiviEtab" onchange="drawSuivi()">
+        <option value="all">Groupe complet</option>
+      </select>
+      <select class="sel" id="suiviPer" onchange="drawSuivi()">
+        <option value="12">12 semaines</option>
+        <option value="24">6 mois</option>
+      </select>
+      <button class="btn">↑ Exporter</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="prog-card">
+      <div class="prog-val">64%</div>
+      <div><div class="prog-lbl">KPI Groupe actuel</div><div class="prog-ch c-g">▲ +3.2% vs semaine précédente</div></div>
+    </div>
+    <div class="prog-card">
+      <div class="prog-val c-g">92%</div>
+      <div><div class="prog-lbl">Meilleur · Spok Toulon</div><div class="prog-ch c-r">▼ 18% — Spok Marseille Saumaty</div></div>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-hdr">
+      <div><div class="chart-title">Évolution hebdomadaire du KPI Global</div><div class="chart-sub">Score qualité moyen du groupe SPOK</div></div>
+    </div>
+    <canvas id="suiviC" height="260"></canvas>
+  </div>
+</div>
+
+<!-- PAR MODULE -->
+<div id="tab-modules" class="pane">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Analyse par module</div><div class="sec-sub">Performance sur la période sélectionnée</div></div>
+    <button class="btn">↑ Exporter</button>
+  </div>
+  <div class="mod-grid" id="modGrid"></div>
+</div>
+
+<!-- OBJECTIFS -->
+<div id="tab-objectifs" class="pane">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Objectifs & conformité</div><div class="sec-sub">Règles appliquées et écarts constatés par module</div></div>
+    <button class="btn">↑ Exporter</button>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Module</th><th>Métrique</th><th>Objectif</th>
+          <th>Réalisé groupe</th><th>Écart</th><th>Statut</th><th>Étab. conformes</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><strong>Enceintes froides</strong></td><td>% conformité</td><td>≥ 80%</td><td class="c-a"><strong>59%</strong></td><td class="c-r">−21 pts</td><td><span class="obj-s obj-w">⚠ En cours</span></td><td>6 / 21</td></tr>
+          <tr><td><strong>Plan de nettoyage</strong></td><td>% conformité</td><td>≥ 80%</td><td class="c-r"><strong>39.5%</strong></td><td class="c-r">−40.5 pts</td><td><span class="obj-s obj-f">✕ Insuffisant</span></td><td>3 / 21</td></tr>
+          <tr><td><strong>Contrôle à réception</strong></td><td>Nb / semaine</td><td>≥ 1 / jour ouvré</td><td class="c-r"><strong>8 total</strong></td><td class="c-r">17 étab. à 0</td><td><span class="obj-s obj-f">✕ Insuffisant</span></td><td>4 / 21</td></tr>
+          <tr><td><strong>Enregistrement étiquettes</strong></td><td>Nb enregistrements</td><td>Actif quotidien</td><td class="c-a"><strong>347</strong></td><td class="c-a">Partiel</td><td><span class="obj-s obj-w">⚠ Partiel</span></td><td>12 / 21</td></tr>
+          <tr><td><strong>Suivi refroidissement</strong></td><td>Nb relevés</td><td>≥ 1 si activité</td><td class="c-a"><strong>13</strong></td><td class="c-a">Faible</td><td><span class="obj-s obj-w">⚠ Partiel</span></td><td>3 / 21</td></tr>
+          <tr><td><strong>Impression étiquettes DLC</strong></td><td>Nb impressions</td><td>Actif quotidien</td><td class="c-g"><strong>116</strong></td><td class="c-g">Correct</td><td><span class="obj-s obj-ok">✓ Atteint</span></td><td>3 / 21</td></tr>
+          <tr><td><strong>Remise en température</strong></td><td>Nb relevés</td><td>≥ 1 si activité</td><td class="c-r"><strong>0</strong></td><td class="c-r">Non renseigné</td><td><span class="obj-s obj-f">✕ Insuffisant</span></td><td>0 / 21</td></tr>
+          <tr><td><strong>Contrôle des huiles</strong></td><td>Nb contrôles</td><td>≥ 1 / semaine</td><td class="c-r"><strong>0</strong></td><td class="c-r">Non renseigné</td><td><span class="obj-s obj-f">✕ Insuffisant</span></td><td>0 / 21</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- GRAPHIQUES -->
+<div id="tab-graphiques" class="pane">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Graphiques</div><div class="sec-sub">KPI par établissement sur la période</div></div>
+    <div style="display:flex;gap:8px">
+      <select class="sel" id="barMod" onchange="drawBar()">
+        <option value="kpi">KPI Global</option>
+        <option value="frigos">Enceintes froides</option>
+        <option value="nettoyage">Plan de nettoyage</option>
+      </select>
+      <button class="btn">↑ Exporter</button>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-hdr">
+      <div><div class="chart-title" id="barTitle">KPI Global — Classement des établissements</div><div class="chart-sub">Établissements actifs · Semaine du 27/07/2026</div></div>
+    </div>
+    <canvas id="barC"></canvas>
+  </div>
+</div>
+
+<!-- TDB PERSO -->
+<div id="tab-tdb" class="pane">
+  <div class="sec-hdr">
+    <div><div class="sec-title">Tableau de bord personnalisé</div><div class="sec-sub">Activez les widgets à afficher en priorité</div></div>
+    <button class="btn" style="background:var(--navy);color:#fff;border-color:var(--navy)">💾 Enregistrer</button>
+  </div>
+  <div class="w-grid" id="wGrid"></div>
+</div>
+
+<script>
+// DATA
+const ETABS=[
+  {nom:'Paniers Choiseul',statut:'actif',kpi:88,frigos:100,nettoyage:84.5,receptions:0,etiquettes:17,refroidissement:null,p1:0,tendance:3},
+  {nom:'Paniers Jeuneurs',statut:'actif',kpi:68,frigos:60,nettoyage:65.4,receptions:1,etiquettes:36,refroidissement:null,p1:2,tendance:-2},
+  {nom:'SPOK - Bourges',statut:'fermé',kpi:null,frigos:null,nettoyage:null,receptions:0,etiquettes:0,refroidissement:null,p1:0,tendance:0},
+  {nom:'Spok - Peynier',statut:'actif',kpi:82,frigos:80,nettoyage:82.6,receptions:2,etiquettes:74,refroidissement:null,p1:1,tendance:1},
+  {nom:'Spok Aubagne Les Paluds',statut:'fermé',kpi:null,frigos:null,nettoyage:null,receptions:0,etiquettes:0,refroidissement:null,p1:0,tendance:0},
+  {nom:'Spok Biarritz',statut:'actif',kpi:38,frigos:null,nettoyage:0,receptions:0,etiquettes:0,refroidissement:0,p1:3,tendance:-4},
+  {nom:'Spok Boétie - Paris 8',statut:'actif',kpi:78,frigos:80,nettoyage:73.7,receptions:1,etiquettes:53,refroidissement:null,p1:1,tendance:2},
+  {nom:'Spok Bordeaux Ravezies',statut:'actif',kpi:22,frigos:0,nettoyage:0,receptions:0,etiquettes:0,refroidissement:null,p1:4,tendance:-1},
+  {nom:'Spok Casanova - Paris 1',statut:'actif',kpi:52,frigos:80,nettoyage:23.5,receptions:0,etiquettes:19,refroidissement:null,p1:2,tendance:1},
+  {nom:'Spok Château Gombert',statut:'fermé',kpi:null,frigos:null,nettoyage:null,receptions:0,etiquettes:0,refroidissement:null,p1:0,tendance:0},
+  {nom:'Spok Les Docks Marseille',statut:'actif',kpi:60,frigos:60,nettoyage:60,receptions:0,etiquettes:10,refroidissement:null,p1:1,tendance:0},
+  {nom:'Spok Levallois',statut:'actif',kpi:45,frigos:80,nettoyage:0,receptions:0,etiquettes:10,refroidissement:9,p1:2,tendance:-3},
+  {nom:'Spok Marcoule Chusclan',statut:'fermé',kpi:null,frigos:null,nettoyage:null,receptions:0,etiquettes:0,refroidissement:null,p1:0,tendance:0},
+  {nom:'Spok Marseille Saumaty',statut:'actif',kpi:18,frigos:0,nettoyage:0,receptions:0,etiquettes:5,refroidissement:null,p1:3,tendance:-2},
+  {nom:'Spok Metz',statut:'actif',kpi:60,frigos:80,nettoyage:56.8,receptions:0,etiquettes:11,refroidissement:null,p1:1,tendance:1},
+  {nom:'Spok Nanterre',statut:'actif',kpi:85,frigos:90,nettoyage:82.8,receptions:0,etiquettes:28,refroidissement:0,p1:0,tendance:5},
+  {nom:'Spok Nantes Gare Sud',statut:'actif',kpi:20,frigos:0,nettoyage:0,receptions:0,etiquettes:0,refroidissement:null,p1:3,tendance:-1},
+  {nom:'Spok Nantes Zénith',statut:'actif',kpi:35,frigos:null,nettoyage:0,receptions:0,etiquettes:15,refroidissement:null,p1:2,tendance:-2},
+  {nom:'Spok Rennes Longchamps',statut:'actif',kpi:55,frigos:70,nettoyage:45,receptions:0,etiquettes:0,refroidissement:null,p1:2,tendance:0},
+  {nom:'Spok Rue de Surène',statut:'actif',kpi:28,frigos:0,nettoyage:0,receptions:0,etiquettes:0,refroidissement:null,p1:3,tendance:-2},
+  {nom:'Spok Saint-Lazare - Paris',statut:'actif',kpi:42,frigos:60,nettoyage:0,receptions:0,etiquettes:0,refroidissement:null,p1:2,tendance:-1},
+  {nom:'Spok Toulon',statut:'actif',kpi:92,frigos:100,nettoyage:100,receptions:2,etiquettes:0,refroidissement:4,p1:0,tendance:4},
+  {nom:'Spok Toulouse Labège',statut:'actif',kpi:30,frigos:null,nettoyage:0,receptions:0,etiquettes:0,refroidissement:null,p1:3,tendance:0},
+  {nom:'Spok Trinité',statut:'actif',kpi:25,frigos:null,nettoyage:null,receptions:0,etiquettes:0,refroidissement:null,p1:0,tendance:0},
+  {nom:'Spok Villemomble',statut:'actif',kpi:65,frigos:70,nettoyage:62,receptions:1,etiquettes:8,refroidissement:null,p1:1,tendance:2},
+];
+
+const MODULES=[
+  {key:'receptions',label:'Contrôle à réception',color:'orange',metric:'count',global:8,alertes:0,
+    top:[['Spok Toulon',3],['Spok - Peynier',2],['Paniers Jeuneurs',1]],
+    flop:[['Spok Trinité',0],['Spok Toulouse Labège',0],['Spok Rue de Surène',0]]},
+  {key:'etiquettes',label:'Enregistrement des étiquettes',color:'orange',metric:'count',global:347,alertes:0,
+    top:[['Spok - Peynier',74],['Spok Boétie Paris 8',53],['Paniers Jeuneurs',36]],
+    flop:[['Spok Trinité',0],['Spok Toulouse Labège',0],['Spok Rennes Longchamps',0]]},
+  {key:'impressions',label:'Impression étiquettes DLC',color:'orange',metric:'count',global:116,alertes:0,
+    top:[['Paniers Jeuneurs',86],['Paniers Choiseul',30],['Spok - Peynier',0]],
+    flop:[['Spok Trinité',0],['Spok Toulouse Labège',0],['Spok Rue de Surène',0]]},
+  {key:'frigos',label:'T° enceintes froides',color:'navy',metric:'pct',global:59,alertes:19,
+    top:[['Paniers Choiseul','100%'],['Spok Toulon','100%'],['Spok Nanterre','90%']],
+    flop:[['Spok Rue de Surène','0%'],['Spok Nantes Gare Sud','0%'],['Spok Marseille Saumaty','0%']]},
+  {key:'refroidissement',label:'Suivi de refroidissement',color:'navy',metric:'count',global:13,alertes:0,
+    top:[['Spok Levallois',9],['Spok Toulon',4],['Spok Biarritz',0]],
+    flop:[['Spok Nanterre',0],['Spok Biarritz',0],['Spok Toulon',4]]},
+  {key:'remise',label:'Remise en température',color:'teal',metric:'count',global:0,alertes:0,
+    top:[['Spok Nanterre',0]],flop:[['Spok Nanterre',0]]},
+  {key:'huiles',label:'Contrôle des huiles',color:'teal',metric:'count',global:0,alertes:0,
+    top:[['Spok - Peynier',0],['Spok Biarritz',0]],flop:[['Spok Biarritz',0],['Spok - Peynier',0]]},
+  {key:'nettoyage',label:'Plan de nettoyage',color:'green',metric:'pct',global:39.5,alertes:0,
+    top:[['Spok Toulon','100%'],['Paniers Choiseul','84.5%'],['Spok Nanterre','82.8%']],
+    flop:[['Spok Toulouse Labège','0%'],['Spok Saint-Lazare','0%'],['Spok Rue de Surène','0%']]},
+];
+
+const WIDGETS=[
+  {id:'kpi',label:'KPI Global',desc:'Score qualité global du groupe',icon:'📊',on:true},
+  {id:'frigos',label:'Alertes frigos',desc:'Températures hors seuil',icon:'🌡️',on:true},
+  {id:'nett',label:'Taux nettoyage',desc:'Conformité plans de nettoyage',icon:'🧹',on:true},
+  {id:'top',label:'Top établissements',desc:'Top 5 performers de la période',icon:'🏆',on:true},
+  {id:'p1',label:'Actions P1',desc:'Priorités critiques à traiter',icon:'🚨',on:true},
+  {id:'map',label:'Carte France',desc:'Vue géographique des étab.',icon:'🗺️',on:false},
+  {id:'obj',label:'Objectifs',desc:'Avancement vs objectifs définis',icon:'🎯',on:false},
+  {id:'tend',label:'Tendance groupe',desc:'Évolution KPI hebdomadaire',icon:'📈',on:false},
+  {id:'rec',label:'Contrôles réception',desc:'Volume contrôles à réception',icon:'📦',on:false},
+];
+
+// HELPERS
+function sc(v){if(v===null||v===undefined)return 'c-m';return v>=80?'c-g':v>=50?'c-a':'c-r'}
+function bc(v){if(v===null||v===undefined)return 'bg-g';return v>=80?'bg-g':v>=50?'bg-a':'bg-r'}
+function pBadge(v){
+  if(v===null||v===undefined)return '<span class="mn">—</span>';
+  const c=v>=80?'mpg':v>=50?'mpa':'mpr';
+  return `<span class="mod-pct ${c}">${v}%</span>`;
+}
+function cnt(v){if(v===null||v===undefined)return '<span class="mn">—</span>';return `<strong>${v}</strong>`;}
+
+// TABLE
+let sKey='kpi',sDir=-1,detVis=true;
+
+function renderTbl(){
+  const q=(document.getElementById('srch')||{}).value||'';
+  let d=[...ETABS];
+  if(q)d=d.filter(e=>e.nom.toLowerCase().includes(q.toLowerCase()));
+  d.sort((a,b)=>{
+    if(a.statut==='fermé'&&b.statut!=='fermé')return 1;
+    if(a.statut!=='fermé'&&b.statut==='fermé')return -1;
+    const av=a[sKey]??-999,bv=b[sKey]??-999;
+    return typeof av==='string'?sDir*av.localeCompare(bv):sDir*(av-bv);
+  });
+  document.getElementById('tblBody').innerHTML=d.map(e=>{
+    const fe=e.statut==='fermé';
+    const tr=e.tendance;
+    const tH=fe?'—':tr>0?`<span class="trend t-u">▲ +${tr}%</span>`:tr<0?`<span class="trend t-d">▼ ${tr}%</span>`:`<span class="trend t-f">→ 0%</span>`;
+    const p1H=fe?'—':`<span class="p1b ${e.p1>0?'p1-n':'p1-0'}">${e.p1}</span>`;
+    return `<tr class="${fe?'fe':''}">
+      <td><a class="etab-a" href="#">${e.nom}</a>${fe?'<span class="fe-tag">fermé</span>':''}</td>
+      <td>${fe||e.kpi===null?'<span class="mn">—</span>':`<div class="kpi-cell"><div class="kpi-score ${sc(e.kpi)}">${e.kpi}%</div><div class="kpi-bar-bg"><div class="kpi-bar ${bc(e.kpi)}" style="width:${e.kpi}%"></div></div></div>`}</td>
+      <td class="dc">${pBadge(e.frigos)}</td>
+      <td class="dc">${pBadge(e.nettoyage)}</td>
+      <td class="dc">${cnt(e.receptions)}</td>
+      <td class="dc">${cnt(e.etiquettes)}</td>
+      <td class="dc">${cnt(e.refroidissement)}</td>
+      <td>${tH}</td>
+      <td>${p1H}</td>
+    </tr>`;
+  }).join('');
+  if(!detVis)document.querySelectorAll('.dc').forEach(c=>c.style.display='none');
+}
+
+function srt(k){
+  if(sKey===k)sDir=-sDir;else{sKey=k;sDir=-1;}
+  document.querySelectorAll('thead th').forEach(th=>{th.classList.remove('sa','sd');if(th.id==='th-'+k)th.classList.add(sDir===-1?'sd':'sa');});
+  renderTbl();
+}
+
+function togDet(){
+  detVis=!detVis;
+  document.getElementById('detSw').classList.toggle('on',detVis);
+  document.querySelectorAll('.dc').forEach(c=>c.style.display=detVis?'':'none');
+}
+
+// TABS
+function setTab(t){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('active',p.id==='tab-'+t));
+  if(t==='suivi')setTimeout(drawSuivi,50);
+  if(t==='graphiques')setTimeout(drawBar,50);
+}
+
+// PERIOD
+const PERIODS=[
+  'Du lun. 30/06/2026 au dim. 06/07/2026',
+  'Du lun. 07/07/2026 au dim. 13/07/2026',
+  'Du lun. 14/07/2026 au dim. 20/07/2026',
+  'Du lun. 21/07/2026 au dim. 27/07/2026',
+  'Du lun. 27/07/2026 au dim. 02/08/2026',
+];
+let pIdx=4;
+function shiftP(d){pIdx=Math.max(0,Math.min(PERIODS.length-1,pIdx+d));document.getElementById('pLbl').textContent=PERIODS[pIdx];}
+
+// SUIVI CHART
+const SUIVI={
+  labels:['S20','S21','S22','S23','S24','S25','S26','S27','S28','S29','S30','S31'],
+  all:[52,55,53,58,60,61,59,62,64,63,65,64],
+  toulon:[82,84,86,88,89,90,88,91,92,91,93,92],
+  nanterre:[70,72,75,78,80,82,80,83,85,84,86,85],
+  bordeaux:[35,30,28,25,22,20,22,20,22,20,22,22],
+};
+
+function isDark(){return document.documentElement.dataset.theme==='dark'||(document.documentElement.dataset.theme===undefined&&window.matchMedia('(prefers-color-scheme:dark)').matches);}
+
+function drawSuivi(){
+  const c=document.getElementById('suiviC');if(!c)return;
+  const ctx=c.getContext('2d');
+  const W=c.parentElement.offsetWidth-40;
+  c.width=W;c.height=260;
+  const PAD={t:20,r:20,b:36,l:46},w=W-PAD.l-PAD.r,h=c.height-PAD.t-PAD.b;
+  const dk=isDark();
+  const gCol=dk?'#2d3f55':'#e2e8f0',txCol=dk?'#94a3b8':'#64748b';
+
+  ctx.clearRect(0,0,W,c.height);
+
+  // Zones
+  ctx.fillStyle='rgba(22,163,74,.06)';ctx.fillRect(PAD.l,PAD.t,w,h*0.2);
+  ctx.fillStyle='rgba(220,38,38,.05)';ctx.fillRect(PAD.l,PAD.t+h*0.5,w,h*0.5);
+
+  // Grid + labels
+  ctx.font='11px system-ui';
+  [0,25,50,75,100].forEach(v=>{
+    const y=PAD.t+h-(v/100)*h;
+    ctx.beginPath();
+    ctx.strokeStyle=v===50?'rgba(217,119,6,.3)':v===80?'rgba(22,163,74,.3)':gCol;
+    ctx.lineWidth=v===50||v===80?1.5:1;
+    ctx.setLineDash(v===50||v===80?[4,4]:[]);
+    ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+w,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=v===50?'#d97706':v===80?'#16a34a':txCol;
+    ctx.textAlign='right';ctx.fillText(v+'%',PAD.l-5,y+4);
+  });
+
+  // X labels
+  ctx.fillStyle=txCol;ctx.textAlign='center';
+  SUIVI.labels.forEach((l,i)=>{
+    ctx.fillText(l,PAD.l+(i/(SUIVI.labels.length-1))*w,PAD.t+h+22);
+  });
+
+  // Lines
+  const lines=[
+    {data:SUIVI.all,color:'#1a3b6b',lw:2.5},
+    {data:SUIVI.toulon,color:'#16a34a',lw:1.5},
+    {data:SUIVI.nanterre,color:'#f97316',lw:1.5},
+    {data:SUIVI.bordeaux,color:'#dc2626',lw:1.5},
+  ];
+  const n=SUIVI.labels.length;
+  lines.forEach(({data:d,color,lw})=>{
+    ctx.beginPath();
+    d.forEach((v,i)=>{const x=PAD.l+(i/(n-1))*w,y=PAD.t+h-(v/100)*h;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.lineTo(PAD.l+w,PAD.t+h);ctx.lineTo(PAD.l,PAD.t+h);ctx.closePath();
+    ctx.fillStyle=color+'15';ctx.fill();
+    ctx.beginPath();
+    d.forEach((v,i)=>{const x=PAD.l+(i/(n-1))*w,y=PAD.t+h-(v/100)*h;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.lineJoin='round';ctx.stroke();
+    const lx=PAD.l+w,ly=PAD.t+h-(d[n-1]/100)*h;
+    ctx.beginPath();ctx.arc(lx,ly,5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+    ctx.beginPath();ctx.arc(lx,ly,2.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  });
+
+  // Legend
+  const legs=[['Groupe',lines[0].color],['Spok Toulon',lines[1].color],['Spok Nanterre',lines[2].color],['Spok Bordeaux',lines[3].color]];
+  ctx.textAlign='left';ctx.font='12px system-ui';
+  let lx=PAD.l;
+  legs.forEach(([l,col])=>{
+    ctx.beginPath();ctx.arc(lx+6,c.height-6,5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+    ctx.fillStyle=txCol;ctx.fillText(l,lx+15,c.height-2);
+    lx+=ctx.measureText(l).width+30;
+  });
+}
+
+// BAR CHART
+function drawBar(){
+  const c=document.getElementById('barC');if(!c)return;
+  const key=document.getElementById('barMod').value;
+  const titles={kpi:'KPI Global',frigos:'T° Enceintes froides',nettoyage:'Plan de nettoyage'};
+  document.getElementById('barTitle').textContent=titles[key]+' — Classement des établissements';
+  const active=ETABS.filter(e=>e.statut==='actif'&&e[key]!==null&&e[key]!==undefined);
+  const sorted=[...active].sort((a,b)=>(b[key]??0)-(a[key]??0));
+  const BAR=24,GAP=5,PAD={t:8,r:70,b:8,l:170};
+  const W=c.parentElement.offsetWidth-40;
+  const H=sorted.length*(BAR+GAP)+PAD.t+PAD.b;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');ctx.clearRect(0,0,W,H);
+  const dk=isDark();
+  const txCol=dk?'#e2e8f0':'#1e293b',bgBar=dk?'#2d3f55':'#f0f4f9';
+  const bW=W-PAD.l-PAD.r;
+  const maxV=key==='kpi'||key==='frigos'||key==='nettoyage'?100:Math.max(...sorted.map(e=>e[key]||0),1);
+  const isPct=key==='kpi'||key==='frigos'||key==='nettoyage';
+  ctx.font='12px system-ui';
+  sorted.forEach((e,i)=>{
+    const v=e[key]??0,y=PAD.t+i*(BAR+GAP);
+    const bw=Math.max(2,(v/maxV)*bW);
+    ctx.fillStyle=txCol;ctx.textAlign='right';
+    const lbl=e.nom.length>22?e.nom.slice(0,22)+'…':e.nom;
+    ctx.fillText(lbl,PAD.l-8,y+BAR*.65);
+    ctx.fillStyle=bgBar;
+    ctx.beginPath();ctx.rect(PAD.l,y,bW,BAR);ctx.fill();
+    ctx.fillStyle=v>=80?'#16a34a':v>=50?'#d97706':'#dc2626';
+    ctx.beginPath();ctx.rect(PAD.l,y,bw,BAR);ctx.fill();
+    ctx.fillStyle=txCol;ctx.textAlign='left';
+    ctx.fillText(v+(isPct?'%':''),PAD.l+bw+6,y+BAR*.65);
+  });
+}
+
+// MODULE CARDS
+function renderModules(){
+  document.getElementById('modGrid').innerHTML=MODULES.map(m=>{
+    const g=m.metric==='pct'?m.global+'%':m.global;
+    const alert=m.alertes>0?`<span class="mod-hdr-alert">⚠ ${m.alertes}</span>`:'';
+    const rows=(arr,col)=>arr.map(([n,s])=>`<div class="mod-row"><span class="mod-row-n">${n}</span><span class="mod-row-s" style="color:${col}">${s}</span></div>`).join('');
+    return `<div class="mod-card">
+      <div class="mod-hdr ${m.color}">
+        <span class="mod-hdr-title">${m.label} ${alert}</span>
+        <span class="mod-hdr-badge">${g}</span>
+      </div>
+      <div class="mod-body">
+        <div class="mod-col"><div class="mod-col-lbl">👑 Top</div>${rows(m.top,'#16a34a')}</div>
+        <div class="mod-col"><div class="mod-col-lbl">⚡ Flop</div>${rows(m.flop,'#dc2626')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// WIDGETS
+function renderWidgets(){
+  document.getElementById('wGrid').innerHTML=WIDGETS.map(w=>`
+    <div class="w-card${w.on?' on':''}" onclick="togW('${w.id}',this)">
+      <div class="w-icon">${w.icon}</div>
+      <div class="w-name">${w.label}</div>
+      <div class="w-desc">${w.desc}</div>
+      <div class="w-foot"><span class="${w.on?'b-on':'b-off'}">${w.on?'Actif':'Inactif'}</span></div>
+    </div>`).join('');
+}
+function togW(id,el){
+  const w=WIDGETS.find(x=>x.id===id);w.on=!w.on;
+  el.classList.toggle('on',w.on);
+  el.querySelector('span').textContent=w.on?'Actif':'Inactif';
+  el.querySelector('span').className=w.on?'b-on':'b-off';
+}
+
+// SUIVI SELECT
+function populateSuivi(){
+  const sel=document.getElementById('suiviEtab');
+  ETABS.filter(e=>e.statut==='actif').forEach(e=>{
+    const o=document.createElement('option');o.value=e.nom;o.textContent=e.nom;sel.appendChild(o);
+  });
+}
+
+// INIT
+renderTbl();renderModules();renderWidgets();populateSuivi();
+
+let rT;
+window.addEventListener('resize',()=>{
+  clearTimeout(rT);rT=setTimeout(()=>{
+    const a=document.querySelector('.pane.active');
+    if(a&&a.id==='tab-suivi')drawSuivi();
+    if(a&&a.id==='tab-graphiques')drawBar();
+  },150);
+});
+</script>
+</body></html>
