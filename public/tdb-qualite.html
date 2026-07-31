@@ -1,5 +1,4 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Tableau de Bord Qualite - Octopus HACCP</title><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 :root{--navy:#1a3b6b;--orange:#f97316;--bg:#f0f4f9;--card:#fff;--bd:#e2e8f0;--tx:#1e293b;--mu:#64748b;--gr:#16a34a;--gr-bg:#f0fdf4;--gr-bd:#bbf7d0;--re:#dc2626;--re-bg:#fef2f2;--re-bd:#fecaca;--am:#d97706;--am-bg:#fffbeb;--am-bd:#fde68a;--r:8px}
 @media(prefers-color-scheme:dark){:root{--bg:#0f1929;--card:#1a2537;--bd:#2d3f55;--tx:#e2e8f0;--mu:#94a3b8;--gr-bg:#052e16;--gr-bd:#166534;--re-bg:#1f0707;--re-bd:#7f1d1d;--am-bg:#1c1002;--am-bd:#78350f}}
@@ -94,7 +93,7 @@ tbody tr:hover td{background:rgba(0,0,0,.015)}
 .chart-sub{font-size:12px;color:var(--mu);margin-top:2px}
 canvas{display:block;max-width:100%}
 .sel{border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:13px;background:var(--card);color:var(--tx);outline:none;cursor:pointer}
-.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
 .mod-card{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);overflow:hidden}
 .mod-hdr{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .mod-hdr.orange{background:#f97316;color:#fff}.mod-hdr.navy{background:#1a3b6b;color:#fff}.mod-hdr.green{background:#166534;color:#fff}.mod-hdr.teal{background:#0f766e;color:#fff}
@@ -120,13 +119,11 @@ canvas{display:block;max-width:100%}
 .action-meta span{background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--bd)}
 .actions-list{display:flex;flex-direction:column;gap:10px}
 .empty{text-align:center;padding:40px;color:var(--mu);font-size:13px}
-#mapFrance{height:520px;border-radius:0 0 var(--r) var(--r);z-index:1}
-.vue-toggle{display:flex;gap:6px;align-items:center}
-.vue-tog-btn{background:var(--bg);border:1px solid var(--bd);color:var(--mu);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer}
-.vue-tog-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+#mapFrance{width:100%;display:block;cursor:crosshair;border-top:1px solid var(--bd)}
 .map-legend{display:flex;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--bd);flex-wrap:wrap;font-size:12px}
 .map-legend-item{display:flex;align-items:center;gap:5px}
 .map-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(0,0,0,.2)}
+.map-tooltip{position:fixed;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;font-size:12px;pointer-events:none;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:180px;display:none}
 .stats5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
 .stat-card{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:14px 16px}
 .stat-card-val{font-size:24px;font-weight:800;color:var(--navy);line-height:1;margin-bottom:3px}
@@ -197,48 +194,45 @@ canvas{display:block;max-width:100%}
 </nav>
 
 <div id="tab-vue" class="pane active">
-  <div class="card">
+  <div class="card" style="margin-bottom:16px">
     <div class="card-hdr">
       <div class="card-hdr-t">Etablissements <span id="etabCount" class="chip chip-n" style="font-size:11px">&#8212;</span></div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input id="srch" type="text" placeholder="Rechercher..." oninput="renderTbl()"
-          style="border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--bg);color:var(--tx);outline:none;width:180px">
-        <div class="vue-toggle">
-          <button class="vue-tog-btn active" id="vTbl" onclick="setVue('tbl')">&#9776; Tableau</button>
-          <button class="vue-tog-btn" id="vMap" onclick="setVue('map')">&#127757; Carte</button>
-        </div>
-      </div>
+      <input id="srch" type="text" placeholder="Rechercher un etablissement..." oninput="renderTbl()"
+        style="border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font-size:13px;background:var(--bg);color:var(--tx);outline:none;width:220px">
     </div>
-    <div id="vueTbl">
-      <div class="tbl-wrap"><table>
-        <thead><tr>
-          <th onclick="srt('name')" id="th-name">Etablissement</th>
-          <th onclick="srt('score')" id="th-score">KPI Global</th>
-          <th onclick="srt('frigos')" id="th-frigos" class="dc">Frigos</th>
-          <th onclick="srt('nettoyage')" id="th-nettoyage" class="dc">Nettoyage</th>
-          <th onclick="srt('receptions')" id="th-receptions" class="dc">Receptions</th>
-          <th onclick="srt('etiquettes')" id="th-etiquettes" class="dc">Etiquettes</th>
-          <th onclick="srt('refroid')" id="th-refroid" class="dc">Refroid.</th>
-          <th onclick="srt('trend')" id="th-trend">Tendance</th>
-          <th onclick="srt('p1')" id="th-p1">P1</th>
-          <th>Profil</th>
-        </tr></thead>
-        <tbody id="tblBody"><tr><td colspan="10" class="empty">Chargement...</td></tr></tbody>
-      </table></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th onclick="srt('name')" id="th-name">Etablissement</th>
+        <th onclick="srt('score')" id="th-score">KPI Global</th>
+        <th onclick="srt('frigos')" id="th-frigos" class="dc">Frigos</th>
+        <th onclick="srt('nettoyage')" id="th-nettoyage" class="dc">Nettoyage</th>
+        <th onclick="srt('receptions')" id="th-receptions" class="dc">Receptions</th>
+        <th onclick="srt('etiquettes')" id="th-etiquettes" class="dc">Etiquettes</th>
+        <th onclick="srt('refroid')" id="th-refroid" class="dc">Refroid.</th>
+        <th onclick="srt('trend')" id="th-trend">Tendance</th>
+        <th onclick="srt('p1')" id="th-p1">P1</th>
+        <th>Profil</th>
+      </tr></thead>
+      <tbody id="tblBody"><tr><td colspan="10" class="empty">Chargement...</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-hdr-t">&#127757; Carte France — Implantation des etablissements</div>
+      <span id="mapStatus" style="font-size:12px;color:var(--mu)"></span>
     </div>
-    <div id="vueMap" style="display:none">
-      <div id="mapFrance"></div>
-      <div class="map-legend">
-        <strong style="font-size:12px;margin-right:4px">Score :</strong>
-        <div class="map-legend-item"><div class="map-dot" style="background:#16a34a"></div>&ge; 80 Excellent</div>
-        <div class="map-legend-item"><div class="map-dot" style="background:#f97316"></div>50&#8211;79 Moyen</div>
-        <div class="map-legend-item"><div class="map-dot" style="background:#dc2626"></div>&lt; 50 Insuffisant</div>
-        <div class="map-legend-item"><div class="map-dot" style="background:#94a3b8;border-style:dashed"></div>Position approx.</div>
-        <span id="mapStatus" style="margin-left:auto;color:var(--mu);font-size:11px"></span>
-      </div>
+    <canvas id="mapFrance" height="420"></canvas>
+    <div class="map-legend">
+      <strong style="font-size:12px;margin-right:4px">Score KPI :</strong>
+      <div class="map-legend-item"><div class="map-dot" style="background:#16a34a"></div>&ge; 80 Excellent</div>
+      <div class="map-legend-item"><div class="map-dot" style="background:#f97316"></div>50&#8211;79 Moyen</div>
+      <div class="map-legend-item"><div class="map-dot" style="background:#dc2626"></div>&lt; 50 Insuffisant</div>
+      <div class="map-legend-item"><div class="map-dot" style="background:#94a3b8;border-style:dashed"></div>Position approx.</div>
     </div>
   </div>
 </div>
+<div class="map-tooltip" id="mapTooltip"></div>
 
 <div id="tab-suivi" class="pane">
   <div class="sec-hdr">
@@ -390,6 +384,7 @@ function processData(){
 
 function render(){
   renderSummary();renderTbl();renderModules();renderActions();renderObjectifs();
+  setTimeout(function(){drawFranceMap();if(!Object.keys(GEO).length)loadGeoData();},100);
   var active=document.querySelector('.pane.active');
   if(active&&active.id==='tab-suivi')setTimeout(drawSuivi,50);
   if(active&&active.id==='tab-graphiques'){buildGOpts();setTimeout(drawChart,50);}
@@ -488,20 +483,130 @@ function renderModules(){
   if(!API)return;
   var rs=Object.values(API.restaurantStats||{});
   var anomalies=API.anomalies||[];
+  var COL_MAP={navy:'#1a3b6b',green:'#166534',orange:'#c2410c',teal:'#0f766e'};
+
   document.getElementById('modGrid').innerHTML=Object.entries(MOD_META).map(function(e){
     var mod=e[0],meta=e[1],realMod=MOD_REAL[mod];
-    var tot=(API.moduleTotals&&API.moduleTotals[realMod])||0;
-    var globalStr=meta.pct
-      ?(rs.length>0?Math.round(rs.reduce(function(s,r){return s+(r.modules[realMod]?r.modules[realMod].coverage*100:0)},0)/rs.length)+'%':'0%')
-      :tot;
-    var top=rs.map(function(r){return{name:r.name,val:r.modules[realMod]?r.modules[realMod].displayValue:0}}).filter(function(v){return v.val>0}).sort(function(a,b){return b.val-a.val}).slice(0,3);
-    var flop=rs.map(function(r){return{name:r.name,val:r.modules[realMod]?r.modules[realMod].displayValue:0}}).sort(function(a,b){return a.val-b.val}).slice(0,3);
-    var critA=anomalies.filter(function(a){return a.module===realMod&&a.severity==='critical'}).length;
-    var alertH=critA>0?'<span class="mod-hdr-alert">&#9888; '+critA+'</span>':'';
-    var row=function(arr,col){return arr.length?arr.map(function(v){return '<div class="mod-row"><span class="mod-row-n">'+v.name+'</span><span class="mod-row-s" style="color:'+col+'">'+(meta.pct?v.val+'%':v.val)+'</span></div>'}).join(''):'<div class="mod-row"><span class="mn">Aucune donnee</span></div>'};
-    return '<div class="mod-card"><div class="mod-hdr '+meta.color+'"><span class="mod-hdr-title">'+meta.icon+' '+mod+' '+alertH+'</span><span class="mod-hdr-badge">'+globalStr+'</span></div>'+
-      '<div class="mod-body"><div class="mod-col"><div class="mod-col-lbl">&#128081; Top</div>'+row(top,'#16a34a')+'</div>'+
-      '<div class="mod-col"><div class="mod-col-lbl">&#9889; Flop</div>'+row(flop,'#dc2626')+'</div></div></div>';
+    var col=COL_MAP[meta.color]||'#1a3b6b';
+
+    /* values per restaurant */
+    var vals=rs.map(function(r){
+      var m=r.modules[realMod];
+      return{name:r.name,val:m?m.displayValue:0,total:m?m.total:0,cov:m?m.coverage:0,active:m&&m.total>0};
+    });
+    var actives=vals.filter(function(v){return v.active;});
+    var inactifs=vals.filter(function(v){return !v.active;}).length;
+    var groupTot=(API.moduleTotals&&API.moduleTotals[realMod])||0;
+
+    /* stats */
+    var avgVal=actives.length>0?Math.round(actives.reduce(function(s,v){return s+v.val;},0)/actives.length):0;
+    var minV=actives.length>0?Math.min.apply(null,actives.map(function(v){return v.val;})):0;
+    var maxV=actives.length>0?Math.max.apply(null,actives.map(function(v){return v.val;})):0;
+
+    /* distribution for pct modules */
+    var distHTML='';
+    if(meta.pct&&actives.length>0){
+      var excellent=actives.filter(function(v){return v.val>=80;}).length;
+      var moyen=actives.filter(function(v){return v.val>=50&&v.val<80;}).length;
+      var insuf=actives.filter(function(v){return v.val<50;}).length;
+      var total3=actives.length;
+      var pE=Math.round(excellent/total3*100),pM=Math.round(moyen/total3*100),pI=Math.round(insuf/total3*100);
+      distHTML='<div style="margin:8px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8">Distribution</div>'+
+        '<div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:1px;margin-bottom:4px">'+
+        '<div style="flex:'+excellent+';background:#16a34a" title="'+excellent+' excellent"></div>'+
+        '<div style="flex:'+moyen+';background:#f97316" title="'+moyen+' moyen"></div>'+
+        '<div style="flex:'+insuf+';background:#dc2626" title="'+insuf+' insuffisant"></div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;font-size:10px">'+
+        '<span style="color:#16a34a">&#9632; '+excellent+' ('+pE+'%) &#8805;80</span>'+
+        '<span style="color:#f97316">&#9632; '+moyen+' ('+pM+'%) 50-79</span>'+
+        '<span style="color:#dc2626">&#9632; '+insuf+' ('+pI+'%) &lt;50</span>'+
+        '</div>';
+    }else if(!meta.pct&&actives.length>0){
+      /* activity distribution: inactive / low / active */
+      var inact=inactifs,low=actives.filter(function(v){return v.val<3;}).length,hi=actives.filter(function(v){return v.val>=3;}).length;
+      var tot3=rs.length;
+      distHTML='<div style="margin:8px 0 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8">Distribution</div>'+
+        '<div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:1px;margin-bottom:4px">'+
+        '<div style="flex:'+hi+';background:#16a34a"></div>'+
+        '<div style="flex:'+low+';background:#f97316"></div>'+
+        '<div style="flex:'+inact+';background:#e2e8f0"></div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;font-size:10px">'+
+        '<span style="color:#16a34a">&#9632; '+hi+' actifs (&#8805;3)</span>'+
+        '<span style="color:#f97316">&#9632; '+low+' faibles</span>'+
+        '<span style="color:#94a3b8">&#9632; '+inact+' inactifs</span>'+
+        '</div>';
+    }
+
+    /* top 5 / flop 5 */
+    var sorted=vals.slice().sort(function(a,b){return b.val-a.val;});
+    var top5=sorted.filter(function(v){return v.active;}).slice(0,5);
+    var flop5=sorted.slice().reverse().filter(function(v,i){return i<5;});
+
+    var rowItem=function(v,col2){
+      var badge=meta.pct?v.val+'%':v.val;
+      var bcol=meta.pct?(v.val>=80?'#16a34a':v.val>=50?'#f97316':'#dc2626'):col2;
+      return '<div class="mod-row">'+
+        '<span class="mod-row-n" title="'+v.name+'">'+v.name+'</span>'+
+        '<span style="font-weight:700;font-size:12px;color:'+bcol+'">'+badge+'</span>'+
+        '</div>';
+    };
+
+    /* anomalies for this module */
+    var modAnoms=anomalies.filter(function(a){return a.module===realMod;});
+    var critA=modAnoms.filter(function(a){return a.severity==='critical';}).length;
+    var highA=modAnoms.filter(function(a){return a.severity==='high';}).length;
+    var anomHTML='';
+    if(modAnoms.length){
+      anomHTML='<div style="border-top:1px solid rgba(0,0,0,.08);padding:8px 14px 4px">'+
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8;margin-bottom:6px">'+
+        '&#9888; '+modAnoms.length+' anomalie'+(modAnoms.length>1?'s':'')+
+        (critA>0?' — <span style="color:#dc2626">'+critA+' critique'+(critA>1?'s':'')+'</span>':'')+
+        (highA>0?' — <span style="color:#d97706">'+highA+' haute'+(highA>1?'s':'')+'</span>':'')+
+        '</div>'+
+        modAnoms.slice(0,3).map(function(a){
+          var sc={'critical':'#dc2626','high':'#d97706','medium':'#3b82f6'}[a.severity]||'#94a3b8';
+          return '<div style="font-size:11px;display:flex;gap:6px;margin-bottom:4px">'+
+            '<span>'+a.icon+'</span>'+
+            '<span><strong style="color:'+sc+'">'+a.restaurant+'</strong> — '+a.title+'</span></div>';
+        }).join('')+
+        '</div>';
+    }
+
+    /* stats bar */
+    var statsHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px 14px;border-top:1px solid rgba(0,0,0,.08);background:rgba(0,0,0,.02)">'+
+      '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:'+col+'">'+actives.length+'</div><div style="font-size:10px;color:#94a3b8">actifs</div></div>'+
+      '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:'+col+'">'+avgVal+(meta.pct?'%':'')+'</div><div style="font-size:10px;color:#94a3b8">moyenne</div></div>'+
+      '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#16a34a">'+maxV+(meta.pct?'%':'')+'</div><div style="font-size:10px;color:#94a3b8">max</div></div>'+
+      '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#dc2626">'+minV+(meta.pct?'%':'')+'</div><div style="font-size:10px;color:#94a3b8">min</div></div>'+
+      '</div>';
+
+    return '<div class="mod-card" style="border-radius:var(--r);overflow:hidden">'+
+      /* header */
+      '<div style="background:'+col+';color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">'+
+      '<span style="font-size:13px;font-weight:700">'+meta.icon+' '+mod+'</span>'+
+      '<div style="display:flex;align-items:center;gap:6px">'+
+      (critA>0?'<span style="background:rgba(220,38,38,.35);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">&#9888; '+critA+'</span>':'')+
+      '<span style="background:rgba(255,255,255,.2);padding:3px 10px;border-radius:12px;font-size:13px;font-weight:800">'+avgVal+(meta.pct?'%':' enr.')+'</span>'+
+      '</div></div>'+
+      /* stats row */
+      statsHTML+
+      /* distribution */
+      '<div style="padding:4px 14px 10px">'+distHTML+'</div>'+
+      /* top / flop */
+      '<div style="display:flex;border-top:1px solid rgba(0,0,0,.08)">'+
+      '<div style="flex:1;padding:10px 14px;border-right:1px solid rgba(0,0,0,.08)">'+
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8;margin-bottom:6px">&#127942; Top 5</div>'+
+      (top5.length?top5.map(function(v){return rowItem(v,'#16a34a');}).join(''):'<div style="font-size:11px;color:#94a3b8">Aucune donnee</div>')+
+      '</div>'+
+      '<div style="flex:1;padding:10px 14px">'+
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8;margin-bottom:6px">&#9889; Flop 5</div>'+
+      flop5.map(function(v){return rowItem(v,'#dc2626');}).join('')+
+      '</div></div>'+
+      /* anomalies */
+      anomHTML+
+      '</div>';
   }).join('');
 }
 
@@ -1183,7 +1288,7 @@ function setTab(t){
   document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+t)});
   if(t==='suivi')setTimeout(drawSuivi,50);
   if(t==='graphiques'){buildGOpts();setTimeout(drawChart,50);}
-  if(t==='vue'&&VUE_MODE==='map'&&leafMap)setTimeout(function(){leafMap.invalidateSize();},80);
+  if(t==='vue')setTimeout(drawFranceMap,80);
 }
 
 function exportCSV(){
@@ -1198,97 +1303,187 @@ function showLoader(txt){var l=document.getElementById('loader');l.classList.rem
 function showLoaderError(msg){document.getElementById('loader').innerHTML='<div class="err-box">&#10060; '+msg+'<br><br><button class="btn" onclick="hideLoader();loadData()">&#8635; Reessayer</button></div>'}
 function hideLoader(){document.getElementById('loader').classList.add('hidden')}
 
-/* ---- Vue toggle ---- */
-var VUE_MODE='tbl',leafMap=null,GEO={},GEO_LOADING=false;
-function setVue(m){
-  VUE_MODE=m;
-  document.getElementById('vTbl').classList.toggle('active',m==='tbl');
-  document.getElementById('vMap').classList.toggle('active',m==='map');
-  document.getElementById('vueTbl').style.display=m==='tbl'?'':'none';
-  document.getElementById('vueMap').style.display=m==='map'?'':'none';
-  if(m==='map'){
-    if(!leafMap)initMap();
-    if(ROWS.length&&!Object.keys(GEO).length&&!GEO_LOADING)loadGeoData();
-    else if(Object.keys(GEO).length)updateMapMarkers();
+/* ---- France SVG canvas map ---- */
+var GEO={},GEO_LOADING=false,MAP_DOTS=[];
+
+/* Metropolitan France simplified outline [lat, lng] */
+var FR_MAIN=[
+  [50.87,2.53],[50.86,1.78],[50.71,1.57],[50.53,1.62],[49.95,-0.08],
+  [49.70,-0.46],[49.66,-0.73],[49.73,-1.64],[49.73,-1.94],[49.68,-2.00],
+  [48.89,-1.89],[48.49,-2.49],[48.44,-2.96],[48.36,-4.70],[48.45,-4.78],
+  [48.29,-4.79],[47.72,-4.37],[47.40,-2.67],[47.15,-2.25],[46.90,-1.95],
+  [46.44,-1.82],[45.60,-1.08],[45.00,-0.97],[44.65,-1.05],[44.38,-1.19],
+  [43.41,-1.77],[43.33,-1.57],[43.19,-0.66],[42.93,-0.31],[42.69,0.70],
+  [42.60,1.66],[42.62,2.26],[42.80,3.06],[43.14,3.07],[43.07,3.83],
+  [43.13,5.03],[43.11,5.89],[43.36,6.12],[43.10,6.80],[43.46,7.38],
+  [43.79,7.57],[44.06,7.55],[44.37,6.87],[45.14,6.61],[45.90,6.96],
+  [46.37,7.06],[46.45,6.90],[47.00,6.89],[47.47,7.57],[47.69,7.45],
+  [47.84,7.34],[48.51,7.80],[48.99,8.22],[49.55,6.36],[49.86,6.18],
+  [50.15,5.88],[50.18,5.65],[50.35,4.98],[50.26,4.19],[50.38,3.52],
+  [50.53,3.07],[50.68,2.90],[50.87,2.53]
+];
+var FR_CORSICA=[
+  [41.38,9.23],[41.58,8.75],[42.00,8.54],[42.38,8.61],[43.00,9.39],
+  [43.02,9.55],[42.67,9.56],[42.39,9.36],[41.93,9.52],[41.38,9.23]
+];
+/* Bounding box for projection */
+var FR_W=-5.3,FR_E=9.8,FR_S=42.2,FR_N=51.3;
+
+function frProj(lat,lng,cw,ch,pad){
+  var latR=lat*Math.PI/180,nR=FR_N*Math.PI/180,sR=FR_S*Math.PI/180;
+  var ym=Math.log(Math.tan(Math.PI/4+latR/2));
+  var yn=Math.log(Math.tan(Math.PI/4+nR/2));
+  var ys=Math.log(Math.tan(Math.PI/4+sR/2));
+  var x=(lng-FR_W)/(FR_E-FR_W)*(cw-2*pad)+pad;
+  var y=(1-(ym-ys)/(yn-ys))*(ch-2*pad)+pad;
+  return[x,y];
+}
+
+function drawFrancePath(ctx,pts,cw,ch,pad){
+  if(!pts.length)return;
+  var p0=frProj(pts[0][0],pts[0][1],cw,ch,pad);
+  ctx.moveTo(p0[0],p0[1]);
+  for(var i=1;i<pts.length;i++){var p=frProj(pts[i][0],pts[i][1],cw,ch,pad);ctx.lineTo(p[0],p[1]);}
+  ctx.closePath();
+}
+
+function drawFranceMap(){
+  var canvas=document.getElementById('mapFrance');
+  if(!canvas)return;
+  var W=canvas.parentElement.offsetWidth||700;
+  canvas.width=W;canvas.height=420;
+  var ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,420);
+  var dk=isDark();
+  var seaCol=dk?'#0f1929':'#dbeafe';
+  var landCol=dk?'#1e3a5f':'#bfdbfe';
+  var borderCol=dk?'#3b82f6':'#2563eb';
+
+  /* sea background */
+  ctx.fillStyle=seaCol;ctx.fillRect(0,0,W,420);
+
+  var PAD=32;
+
+  /* France mainland */
+  ctx.beginPath();drawFrancePath(ctx,FR_MAIN,W,420,PAD);
+  ctx.fillStyle=landCol;ctx.fill();
+  ctx.strokeStyle=borderCol;ctx.lineWidth=1.5;ctx.stroke();
+
+  /* Corsica */
+  ctx.beginPath();drawFrancePath(ctx,FR_CORSICA,W,420,PAD);
+  ctx.fillStyle=landCol;ctx.fill();
+  ctx.strokeStyle=borderCol;ctx.lineWidth=1;ctx.stroke();
+
+  /* dot shadow pass then dot pass */
+  MAP_DOTS=[];
+  ROWS.forEach(function(r){
+    var geo=GEO[r.id];if(!geo)return;
+    var p=frProj(geo.lat,geo.lng,W,420,PAD);
+    MAP_DOTS.push({x:p[0],y:p[1],r:r,geo:geo});
+  });
+
+  /* shadows */
+  MAP_DOTS.forEach(function(d){
+    ctx.beginPath();ctx.arc(d.x+2,d.y+2,8,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fill();
+  });
+
+  /* dots */
+  MAP_DOTS.forEach(function(d){
+    var sc=d.r.score;
+    var col=sc>=80?'#16a34a':sc>=50?'#f97316':'#dc2626';
+    var r=sc>=80?9:sc>=50?8:8;
+    ctx.beginPath();ctx.arc(d.x,d.y,r,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.fill();
+    ctx.strokeStyle=d.geo.fallback?'#94a3b8':'rgba(255,255,255,0.85)';
+    ctx.lineWidth=d.geo.fallback?1.5:2;ctx.stroke();
+    /* score label for high scorers */
+    if(sc>=80){
+      ctx.fillStyle='#fff';ctx.font='bold 7px system-ui';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(sc,d.x,d.y);
+    }
+  });
+
+  /* no-data message */
+  if(!MAP_DOTS.length){
+    ctx.fillStyle=dk?'#64748b':'#94a3b8';ctx.font='14px system-ui';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('Geolocalisation en cours...',W/2,420/2);
   }
 }
 
-function initMap(){
-  if(leafMap||typeof L==='undefined')return;
-  leafMap=L.map('mapFrance',{center:[46.5,2.5],zoom:6,zoomControl:true});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom:18
-  }).addTo(leafMap);
-}
-
 function loadGeoData(){
-  if(GEO_LOADING)return;
+  if(GEO_LOADING||!ROWS.length)return;
   GEO_LOADING=true;
-  var n=ROWS.length;
-  document.getElementById('mapStatus').textContent='Geolocalisation en cours... ('+n+' etablissements)';
+  document.getElementById('mapStatus').textContent='Geolocalisation des etablissements...';
   fetch('/api/geocode')
     .then(function(r){return r.json();})
-    .then(function(data){GEO=data;GEO_LOADING=false;document.getElementById('mapStatus').textContent='';updateMapMarkers();})
-    .catch(function(e){GEO_LOADING=false;document.getElementById('mapStatus').textContent='Erreur geo : '+e.message;});
+    .then(function(data){
+      GEO=data;GEO_LOADING=false;
+      var approx=Object.values(data).filter(function(g){return g.fallback;}).length;
+      var total=Object.values(data).length;
+      document.getElementById('mapStatus').textContent=total+' etablissements places'+(approx>0?' ('+approx+' approx.)':'');
+      drawFranceMap();
+    })
+    .catch(function(e){GEO_LOADING=false;document.getElementById('mapStatus').textContent='Erreur : '+e.message;});
 }
 
-var MAP_MARKERS=[];
-function updateMapMarkers(){
-  if(!leafMap||typeof L==='undefined')return;
-  MAP_MARKERS.forEach(function(m){m.remove();});MAP_MARKERS=[];
-  var bounds=[];
-  ROWS.forEach(function(r){
-    var geo=GEO[r.id];if(!geo)return;
-    var sc=r.score;
-    var col=sc>=80?'#16a34a':sc>=50?'#f97316':'#dc2626';
-    var size=sc>=80?14:sc>=50?12:12;
-    var icon=L.divIcon({
-      className:'',
-      html:'<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+col+';border:2px solid '+(geo.fallback?'#94a3b8':'rgba(0,0,0,.25)')+';box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>',
-      iconSize:[size,size],iconAnchor:[size/2,size/2]
+/* Tooltip on hover */
+(function(){
+  var tip=null;
+  function setupMapEvents(){
+    var canvas=document.getElementById('mapFrance');
+    if(!canvas)return;
+    tip=document.getElementById('mapTooltip');
+    canvas.addEventListener('mousemove',function(e){
+      var rect=canvas.getBoundingClientRect();
+      var mx=e.clientX-rect.left,my=e.clientY-rect.top;
+      var hit=null,minD=18;
+      MAP_DOTS.forEach(function(d){
+        var dx=d.x-mx,dy=d.y-my,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<minD){minD=dist;hit=d;}
+      });
+      if(hit){
+        var r=hit.r,sc=r.score;
+        var col=sc>=80?'#16a34a':sc>=50?'#f97316':'#dc2626';
+        var ap=(API.actionPlan||[]).filter(function(a){return a.site===r.name;});
+        var p1=ap.filter(function(a){return a.priority==='P1';}).length;
+        var tH=r.trend>0?'<span style="color:#16a34a">&#9650; +'+r.trend+'%</span>':r.trend<0?'<span style="color:#dc2626">&#9660; '+r.trend+'%</span>':'stable';
+        tip.innerHTML=
+          '<div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:5px">'+r.name+'</div>'+
+          '<div style="font-size:22px;font-weight:800;color:'+col+';line-height:1">'+sc+'<span style="font-size:13px">/100</span></div>'+
+          '<div style="font-size:11px;color:var(--mu);margin-bottom:6px">'+r.scoreLabel+'</div>'+
+          '<div style="font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px">'+
+          '<span style="color:var(--mu)">Frigos</span><strong>'+(r.frigos!==null?r.frigos+'%':'—')+'</strong>'+
+          '<span style="color:var(--mu)">Nettoyage</span><strong>'+(r.nettoyage!==null?r.nettoyage+'%':'—')+'</strong>'+
+          '<span style="color:var(--mu)">Receptions</span><strong>'+(r.receptions!==null?r.receptions:'—')+'</strong>'+
+          '<span style="color:var(--mu)">Tendance</span><strong>'+tH+'</strong>'+
+          '</div>'+
+          (p1>0?'<div style="margin-top:6px;font-size:11px;background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:10px;font-weight:600;display:inline-block">'+p1+' action'+(p1>1?'s':'')+' P1</div>':'')+
+          '<div style="margin-top:5px;font-size:11px;color:var(--mu)">'+r.profileData.icon+' '+r.profileData.label+'</div>'+
+          (hit.geo.fallback?'<div style="font-size:10px;color:#94a3b8;font-style:italic;margin-top:2px">Position approximative</div>':'');
+        tip.style.display='block';
+        var tx=e.clientX+14,ty=e.clientY-20;
+        if(tx+220>window.innerWidth)tx=e.clientX-230;
+        tip.style.left=tx+'px';tip.style.top=ty+'px';
+      }else{
+        tip.style.display='none';
+      }
     });
-    var ap=(API.actionPlan||[]).filter(function(a){return a.site===r.name;});
-    var p1=ap.filter(function(a){return a.priority==='P1';}).length;
-    var p2=ap.filter(function(a){return a.priority==='P2';}).length;
-    var trendH=r.trend>0?'<span style="color:#16a34a">&#9650; +'+r.trend+'%</span>':r.trend<0?'<span style="color:#dc2626">&#9660; '+r.trend+'%</span>':'<span style="color:#94a3b8">stable</span>';
-    var popup='<div style="font-family:system-ui;min-width:200px">'+
-      '<div style="font-weight:700;font-size:13px;margin-bottom:6px;color:#1a3b6b">'+r.name+'</div>'+
-      '<div style="font-size:20px;font-weight:800;color:'+col+'">'+sc+'/100</div>'+
-      '<div style="font-size:11px;color:#64748b;margin-bottom:6px">'+r.scoreLabel+'</div>'+
-      '<table style="font-size:11px;width:100%;border-collapse:collapse">'+
-      '<tr><td style="color:#64748b;padding:2px 0">Frigos</td><td style="text-align:right;font-weight:600">'+(r.frigos!==null?r.frigos+'%':'—')+'</td></tr>'+
-      '<tr><td style="color:#64748b;padding:2px 0">Nettoyage</td><td style="text-align:right;font-weight:600">'+(r.nettoyage!==null?r.nettoyage+'%':'—')+'</td></tr>'+
-      '<tr><td style="color:#64748b;padding:2px 0">Receptions</td><td style="text-align:right;font-weight:600">'+(r.receptions!==null?r.receptions:'—')+'</td></tr>'+
-      '<tr><td style="color:#64748b;padding:2px 0">Etiquettes</td><td style="text-align:right;font-weight:600">'+(r.etiquettes!==null?r.etiquettes:'—')+'</td></tr>'+
-      '</table>'+
-      '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;font-size:11px">'+
-      '<span>Tendance : '+trendH+'</span>'+
-      (p1>0?'<span style="background:#fef2f2;color:#dc2626;padding:1px 6px;border-radius:10px;font-weight:600">'+p1+' action'+(p1>1?'s':'')+' P1</span>':'')+
-      (p2>0?'<span style="background:#fffbeb;color:#d97706;padding:1px 6px;border-radius:10px;font-weight:600">'+p2+' P2</span>':'')+
-      '</div>'+
-      '<div style="margin-top:5px;font-size:11px;color:#94a3b8">'+r.profileData.icon+' '+r.profileData.label+'</div>'+
-      (geo.fallback?'<div style="margin-top:4px;font-size:10px;color:#94a3b8;font-style:italic">Position approximative</div>':'')+
-      '</div>';
-    var marker=L.marker([geo.lat,geo.lng],{icon:icon}).addTo(leafMap);
-    marker.bindPopup(popup,{maxWidth:260});
-    marker.on('mouseover',function(){this.openPopup();});
-    MAP_MARKERS.push(marker);
-    bounds.push([geo.lat,geo.lng]);
-  });
-  if(bounds.length>1)leafMap.fitBounds(bounds,{padding:[30,30]});
-  else if(bounds.length===1)leafMap.setView(bounds[0],12);
-}
+    canvas.addEventListener('mouseleave',function(){if(tip)tip.style.display='none';});
+  }
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(setupMapEvents,500);});
+})();
 
 var rT;
 window.addEventListener('resize',function(){clearTimeout(rT);rT=setTimeout(function(){
   var a=document.querySelector('.pane.active');
   if(a&&a.id==='tab-suivi')drawSuivi();
   if(a&&a.id==='tab-graphiques')drawChart();
-  if(leafMap&&VUE_MODE==='map')leafMap.invalidateSize();
+  drawFranceMap();
 },150)});
 
 loadData();
 </script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body></html>
