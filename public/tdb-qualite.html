@@ -119,6 +119,13 @@ canvas{display:block;max-width:100%}
 .action-meta span{background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--bd)}
 .actions-list{display:flex;flex-direction:column;gap:10px}
 .empty{text-align:center;padding:40px;color:var(--mu);font-size:13px}
+.g-ctrl-bar{background:var(--card);border-radius:var(--r);border:1px solid var(--bd);padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.g-types{display:flex;flex-wrap:wrap;gap:6px}
+.g-type-btn{background:var(--bg);border:1px solid var(--bd);color:var(--mu);border-radius:6px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.g-type-btn:hover{color:var(--tx);border-color:var(--navy)}
+.g-type-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.g-opts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.g-opts label{font-size:12px;color:var(--mu);font-weight:500}
 @media(max-width:600px){.grid2{grid-template-columns:1fr}.hdr-badge{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
@@ -228,19 +235,21 @@ canvas{display:block;max-width:100%}
 </div>
 
 <div id="tab-graphiques" class="pane">
-  <div class="sec-hdr">
-    <div><div class="sec-title">Graphiques</div><div class="sec-sub">Classement des etablissements par indicateur</div></div>
-    <select class="sel" id="barMod" onchange="drawBar()">
-      <option value="score">KPI Global (score conformite)</option>
-      <option value="frigos">T Enceintes froides (%)</option>
-      <option value="nettoyage">Plan de nettoyage (%)</option>
-      <option value="receptions">Receptions (nb)</option>
-      <option value="etiquettes">Etiquettes DLC (nb)</option>
-    </select>
+  <div class="g-ctrl-bar">
+    <div class="g-types">
+      <button class="g-type-btn active" data-gtype="hbar" onclick="setGType('hbar')">&#9646; Classement</button>
+      <button class="g-type-btn" data-gtype="vbar" onclick="setGType('vbar')">&#9646;&#9646; Comparaison</button>
+      <button class="g-type-btn" data-gtype="radar" onclick="setGType('radar')">&#11835; Radar</button>
+      <button class="g-type-btn" data-gtype="donut" onclick="setGType('donut')">&#9711; Donut</button>
+      <button class="g-type-btn" data-gtype="hmap" onclick="setGType('hmap')">&#9632; Heatmap</button>
+      <button class="g-type-btn" data-gtype="line" onclick="setGType('line')">&#9135; Courbe</button>
+    </div>
+    <div class="g-opts" id="gOpts"></div>
   </div>
-  <div class="chart-wrap">
-    <div class="chart-hdr"><div><div class="chart-title" id="barTitle">KPI Global - Classement</div><div class="chart-sub" id="barSub">Score de conformite HACCP pondere (0-100)</div></div></div>
-    <canvas id="barC"></canvas>
+  <div class="chart-wrap" style="margin-top:16px">
+    <div class="chart-hdr"><div><div class="chart-title" id="gTitle">&#8212;</div><div class="chart-sub" id="gSub">&#8212;</div></div></div>
+    <canvas id="gC" style="max-width:100%;display:block"></canvas>
+    <div id="gLegend" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center"></div>
   </div>
 </div>
 
@@ -304,7 +313,7 @@ function render(){
   renderSummary();renderTbl();renderModules();renderActions();renderObjectifs();
   var active=document.querySelector('.pane.active');
   if(active&&active.id==='tab-suivi')setTimeout(drawSuivi,50);
-  if(active&&active.id==='tab-graphiques')setTimeout(drawBar,50);
+  if(active&&active.id==='tab-graphiques'){buildGOpts();setTimeout(drawChart,50);}
 }
 
 function renderSummary(){
@@ -525,53 +534,421 @@ function drawSuivi(){
   });
 }
 
-function drawBar(){
-  var canvas=document.getElementById('barC');
-  if(!canvas||!API)return;
-  var key=document.getElementById('barMod').value;
-  var TITLES={score:'KPI Global - Classement',frigos:'T Enceintes froides (%) - Classement',nettoyage:'Plan de nettoyage (%) - Classement',receptions:'Receptions (nb) - Classement',etiquettes:'Etiquettes DLC (nb) - Classement'};
-  document.getElementById('barTitle').textContent=TITLES[key]||key;
-  var rs=Object.values(API.restaurantStats||{});
-  var getVal=function(r){
-    if(key==='score')return(r.complianceScore&&r.complianceScore.score)||0;
-    if(key==='frigos')return(r.modules['Températures frigos']&&r.modules['Températures frigos'].displayValue)||0;
-    if(key==='nettoyage')return(r.modules['Plans de nettoyage']&&r.modules['Plans de nettoyage'].displayValue)||0;
-    if(key==='receptions')return(r.modules['Réceptions']&&r.modules['Réceptions'].displayValue)||0;
-    if(key==='etiquettes')return(r.modules['Étiquettes DLC']&&r.modules['Étiquettes DLC'].displayValue)||0;
-    return 0;
-  };
-  var sorted=rs.slice().sort(function(a,b){return getVal(b)-getVal(a)});
-  var isPct=key==='score'||key==='frigos'||key==='nettoyage';
-  var BAR=24,GAP=5;
-  var PAD={t:8,r:70,b:8,l:180};
-  var W=canvas.parentElement.offsetWidth-40;
-  var H=sorted.length*(BAR+GAP)+PAD.t+PAD.b;
-  canvas.width=W;canvas.height=H;
-  var ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
-  var dk=isDark();
-  var txCol=dk?'#e2e8f0':'#1e293b',bgBar=dk?'#2d3f55':'#f0f4f9';
-  var bW=W-PAD.l-PAD.r;
-  var vals=sorted.map(getVal);
-  var maxV=isPct?100:Math.max.apply(null,vals.concat([1]));
-  ctx.font='12px system-ui';
-  sorted.forEach(function(r,i){
-    var v=getVal(r);
-    var y=PAD.t+i*(BAR+GAP);
-    var bw=Math.max(v>0?4:0,(v/maxV)*bW);
-    ctx.fillStyle=txCol;ctx.textAlign='right';
-    var lbl=r.name.length>22?r.name.slice(0,22)+'...':r.name;
-    ctx.fillText(lbl,PAD.l-8,y+BAR*0.65);
-    ctx.fillStyle=bgBar;ctx.fillRect(PAD.l,y,bW,BAR);
-    if(bw>0){ctx.fillStyle=v>=80?'#16a34a':v>=50?'#d97706':'#dc2626';ctx.fillRect(PAD.l,y,bw,BAR);}
-    ctx.fillStyle=txCol;ctx.textAlign='left';ctx.fillText(v+(isPct?'%':''),PAD.l+bw+6,y+BAR*0.65);
+/* ---- Graphiques engine ---- */
+var G_TYPE='hbar';
+var IND_OPTS=[
+  {v:'score',l:'KPI Global',pct:true,mod:null},
+  {v:'frigos',l:'T. Frigos',pct:true,mod:'Températures frigos'},
+  {v:'nettoyage',l:'Nettoyage',pct:true,mod:'Plans de nettoyage'},
+  {v:'receptions',l:'Receptions',pct:false,mod:'Réceptions'},
+  {v:'etiquettes',l:'Etiquettes DLC',pct:false,mod:'Étiquettes DLC'},
+  {v:'refroid',l:'Refroidissement',pct:false,mod:'Refroidissement'},
+];
+var IND_MULTI=[
+  {v:'frigos',l:'T. Frigos',col:'#1a3b6b'},
+  {v:'nettoyage',l:'Nettoyage',col:'#16a34a'},
+  {v:'score',l:'KPI Global',col:'#f97316'},
+];
+var G_PROFILE_COLORS={champion:'#16a34a',progressive:'#22c55e',regular:'#3b82f6',burst:'#8b5cf6',specialized:'#06b6d4',declining:'#f97316',atrisk:'#dc2626',inactive:'#94a3b8'};
+
+function getIndVal(r,v){
+  if(v==='score')return(r.complianceScore&&r.complianceScore.score)||0;
+  if(v==='frigos')return(r.modules['Températures frigos']&&r.modules['Températures frigos'].displayValue)||0;
+  if(v==='nettoyage')return(r.modules['Plans de nettoyage']&&r.modules['Plans de nettoyage'].displayValue)||0;
+  if(v==='receptions')return(r.modules['Réceptions']&&r.modules['Réceptions'].displayValue)||0;
+  if(v==='etiquettes')return(r.modules['Étiquettes DLC']&&r.modules['Étiquettes DLC'].displayValue)||0;
+  if(v==='refroid')return(r.modules['Refroidissement']&&r.modules['Refroidissement'].displayValue)||0;
+  return 0;
+}
+
+function setGType(t){
+  G_TYPE=t;
+  document.querySelectorAll('.g-type-btn').forEach(function(b){b.classList.toggle('active',b.dataset.gtype===t)});
+  buildGOpts();
+  drawChart();
+}
+
+function buildGOpts(){
+  var o=document.getElementById('gOpts');
+  if(G_TYPE==='hbar'){
+    o.innerHTML='<label>Indicateur</label>'+
+      '<select class="sel" id="gInd" onchange="drawChart()">'+IND_OPTS.map(function(i){return'<option value="'+i.v+'">'+i.l+'</option>'}).join('')+'</select>'+
+      '<label>Trier</label><select class="sel" id="gSort" onchange="drawChart()"><option value="desc">Meilleur en haut</option><option value="asc">Moins bon en haut</option></select>';
+  }else if(G_TYPE==='vbar'){
+    o.innerHTML='<label>Top N etablissements</label>'+
+      '<select class="sel" id="gN" onchange="drawChart()"><option value="10">Top 10</option><option value="15">Top 15</option><option value="999">Tous</option></select>'+
+      '<label>Indicateur principal</label>'+
+      '<select class="sel" id="gInd" onchange="drawChart()">'+IND_OPTS.map(function(i){return'<option value="'+i.v+'">'+i.l+'</option>'}).join('')+'</select>';
+  }else if(G_TYPE==='radar'){
+    o.innerHTML='<label>Etablissement</label>'+
+      '<select class="sel" id="gEtab" onchange="drawChart()">'+
+      (ROWS.slice().sort(function(a,b){return b.score-a.score}).map(function(r){return'<option value="'+r.id+'">'+r.name+'</option>'}).join(''))+
+      '</select>'+
+      '<label>vs Moyenne groupe</label><select class="sel" id="gRadarCmp" onchange="drawChart()"><option value="0">Non</option><option value="1">Oui</option></select>';
+  }else if(G_TYPE==='donut'){
+    o.innerHTML='<label>Vue</label>'+
+      '<select class="sel" id="gDonutV" onchange="drawChart()">'+
+      '<option value="profil">Repartition des profils</option>'+
+      '<option value="tranche">Tranches de score KPI</option>'+
+      '<option value="module">Conformite par module</option>'+
+      '</select>';
+  }else if(G_TYPE==='hmap'){
+    o.innerHTML='<label>Trier par</label>'+
+      '<select class="sel" id="gHmapSort" onchange="drawChart()">'+
+      IND_OPTS.map(function(i){return'<option value="'+i.v+'">'+i.l+'</option>'}).join('')+
+      '</select>'+
+      '<label>N etablissements</label>'+
+      '<select class="sel" id="gHmapN" onchange="drawChart()"><option value="20">20</option><option value="999">Tous</option></select>';
+  }else if(G_TYPE==='line'){
+    o.innerHTML='<label>Etablissements</label>'+
+      '<select class="sel" id="gLineEtab" multiple size="1" onchange="drawChart()" style="min-width:180px">'+
+      '<option value="all" selected>Groupe complet</option>'+
+      (ROWS.slice().sort(function(a,b){return b.score-a.score}).map(function(r){return'<option value="'+r.id+'">'+r.name+'</option>'}).join(''))+
+      '</select>'+
+      '<span style="font-size:11px;color:var(--mu)">(Ctrl+clic pour multi)</span>';
+  }
+}
+
+function selV(id){var e=document.getElementById(id);return e?e.value:null;}
+function selN(id,def){var e=document.getElementById(id);return e?parseInt(e.value)||def:def;}
+
+function drawChart(){
+  if(!API)return;
+  if(G_TYPE==='hbar')drawHBar();
+  else if(G_TYPE==='vbar')drawVBar();
+  else if(G_TYPE==='radar')drawRadar();
+  else if(G_TYPE==='donut')drawDonut();
+  else if(G_TYPE==='hmap')drawHmap();
+  else if(G_TYPE==='line')drawLine();
+}
+
+function getCanvas(){
+  var c=document.getElementById('gC');
+  if(!c)return null;
+  var W=c.parentElement.offsetWidth-40;
+  if(W<200)W=600;
+  return{c:c,ctx:c.getContext('2d'),W:W};
+}
+
+function drawHBar(){
+  var key=selV('gInd')||'score';
+  var asc=selV('gSort')==='asc';
+  var ind=IND_OPTS.find(function(i){return i.v===key})||IND_OPTS[0];
+  document.getElementById('gTitle').textContent='Classement - '+ind.l;
+  document.getElementById('gSub').textContent=ind.pct?'Pourcentage de conformite (%)':'Nombre d\'enregistrements';
+  document.getElementById('gLegend').innerHTML='';
+  var rs=Object.values(API.restaurantStats||{}).slice().sort(function(a,b){
+    return asc?(getIndVal(a,key)-getIndVal(b,key)):(getIndVal(b,key)-getIndVal(a,key));
   });
+  var BAR=22,GAP=4,PAD={t:8,r:72,b:8,l:0};
+  var g=getCanvas();if(!g)return;
+  var maxName=Math.min(24,Math.max.apply(null,rs.map(function(r){return r.name.length})));
+  PAD.l=maxName*7+16;
+  var H=rs.length*(BAR+GAP)+PAD.t+PAD.b;
+  g.c.width=g.W;g.c.height=H;
+  var ctx=g.ctx;ctx.clearRect(0,0,g.W,H);
+  var dk=isDark(),txCol=dk?'#e2e8f0':'#1e293b',bgBar=dk?'#1e2f43':'#f0f4f9';
+  var bW=g.W-PAD.l-PAD.r;
+  var maxV=ind.pct?100:Math.max.apply(null,rs.map(function(r){return getIndVal(r,key)}).concat([1]));
+  ctx.font='12px system-ui';
+  rs.forEach(function(r,i){
+    var v=getIndVal(r,key);
+    var y=PAD.t+i*(BAR+GAP);
+    var bw=Math.max(v>0?3:0,(v/maxV)*bW);
+    var col=v>=80?'#16a34a':v>=50?'#f97316':'#dc2626';
+    if(!ind.pct)col='#1a3b6b';
+    ctx.fillStyle=txCol;ctx.textAlign='right';ctx.font='12px system-ui';
+    var lbl=r.name.length>maxName?r.name.slice(0,maxName-1)+'…':r.name;
+    ctx.fillText(lbl,PAD.l-8,y+BAR*0.67);
+    ctx.fillStyle=bgBar;ctx.fillRect(PAD.l,y,bW,BAR);
+    if(bw>0){ctx.fillStyle=col;ctx.fillRect(PAD.l,y,bw,BAR);}
+    ctx.fillStyle=txCol;ctx.textAlign='left';ctx.font='11px system-ui';
+    ctx.fillText(v+(ind.pct?'%':''),PAD.l+bw+5,y+BAR*0.67);
+  });
+}
+
+function drawVBar(){
+  var key=selV('gInd')||'score';
+  var N=selN('gN',10);
+  var ind=IND_OPTS.find(function(i){return i.v===key})||IND_OPTS[0];
+  document.getElementById('gTitle').textContent='Comparaison multi-indicateurs - Top '+Math.min(N,ROWS.length)+' etablissements (tries par '+ind.l+')';
+  document.getElementById('gSub').textContent='Barres groupees : KPI Global + Frigos + Nettoyage';
+  var INDS=[
+    {v:'score',l:'KPI Global',col:'#1a3b6b'},
+    {v:'frigos',l:'T. Frigos',col:'#0ea5e9'},
+    {v:'nettoyage',l:'Nettoyage',col:'#16a34a'},
+  ];
+  var rs=Object.values(API.restaurantStats||{}).slice().sort(function(a,b){return getIndVal(b,key)-getIndVal(a,key)}).slice(0,N);
+  var PAD={t:20,r:20,b:80,l:48};
+  var g=getCanvas();if(!g)return;
+  var grpW=Math.max(20,Math.min(120,(g.W-PAD.l-PAD.r)/rs.length-8));
+  var barW=Math.max(4,Math.floor(grpW/INDS.length)-3);
+  var H=340;
+  g.c.width=g.W;g.c.height=H;
+  var ctx=g.ctx;ctx.clearRect(0,0,g.W,H);
+  var dk=isDark(),txCol=dk?'#e2e8f0':'#1e293b',gCol=dk?'#2d3f55':'#e2e8f0';
+  var cw=g.W-PAD.l-PAD.r,ch=H-PAD.t-PAD.b;
+  [0,25,50,75,100].forEach(function(v){
+    var y=PAD.t+ch-(v/100)*ch;
+    ctx.beginPath();ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=dk?'#64748b':'#94a3b8';ctx.textAlign='right';ctx.font='10px system-ui';ctx.fillText(v+'%',PAD.l-5,y+4);
+  });
+  var step=cw/rs.length;
+  rs.forEach(function(r,ri){
+    var cx=PAD.l+ri*step+step/2;
+    var totalW=INDS.length*barW+(INDS.length-1)*3;
+    var x0=cx-totalW/2;
+    INDS.forEach(function(ind2,ii){
+      var v=Math.min(100,getIndVal(r,ind2.v));
+      var bh=(v/100)*ch;
+      var x=x0+ii*(barW+3);
+      var y=PAD.t+ch-bh;
+      ctx.fillStyle=ind2.col;
+      ctx.globalAlpha=0.85;
+      ctx.fillRect(x,y,barW,bh);
+      ctx.globalAlpha=1;
+    });
+    ctx.fillStyle=txCol;ctx.textAlign='center';ctx.font='10px system-ui';
+    var lbl=r.name.length>12?r.name.slice(0,11)+'…':r.name;
+    ctx.save();ctx.translate(cx,PAD.t+ch+12);ctx.rotate(-0.5);ctx.fillText(lbl,0,0);ctx.restore();
+  });
+  document.getElementById('gLegend').innerHTML=INDS.map(function(i){
+    return'<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><span style="width:14px;height:14px;border-radius:3px;background:'+i.col+';display:inline-block"></span>'+i.l+'</span>';
+  }).join('');
+}
+
+function drawRadar(){
+  var selId=selV('gEtab');
+  var showAvg=selV('gRadarCmp')==='1';
+  if(!selId)return;
+  var rs=API.restaurantStats||{};
+  var r=rs[selId];if(!r)return;
+  var axes=[
+    {k:'score',l:'KPI Global',pct:true},
+    {k:'frigos',l:'Frigos',pct:true},
+    {k:'nettoyage',l:'Nettoyage',pct:true},
+    {k:'receptions',l:'Receptions',pct:false,max:null},
+    {k:'etiquettes',l:'Etiquettes',pct:false,max:null},
+    {k:'refroid',l:'Refroid.',pct:false,max:null},
+  ];
+  var allRS=Object.values(rs);
+  axes.forEach(function(a){if(!a.pct){a.max=Math.max.apply(null,allRS.map(function(x){return getIndVal(x,a.k)}).concat([1]))||1;}});
+  var norm=function(a,v){return a.pct?v/100:v/a.max};
+  var vals=axes.map(function(a){return norm(a,getIndVal(r,a.k))});
+  var avgVals=showAvg?axes.map(function(a){
+    return norm(a,allRS.reduce(function(s,x){return s+getIndVal(x,a.k)},0)/Math.max(1,allRS.length));
+  }):null;
+  document.getElementById('gTitle').textContent='Radar de conformite - '+r.name;
+  document.getElementById('gSub').textContent='Performance sur 6 indicateurs cles (normalise 0-100%)';
+  var g=getCanvas();if(!g)return;
+  var sz=Math.min(g.W,440);
+  g.c.width=sz;g.c.height=sz;
+  var ctx=g.ctx;ctx.clearRect(0,0,sz,sz);
+  var cx=sz/2,cy=sz/2,R=sz*0.36,n=axes.length;
+  var dk=isDark(),gCol=dk?'#2d3f55':'#e2e8f0',txCol=dk?'#94a3b8':'#64748b';
+  var ang=function(i){return (i/n)*Math.PI*2-Math.PI/2};
+  [0.25,0.5,0.75,1].forEach(function(lv){
+    ctx.beginPath();
+    for(var i=0;i<n;i++){var a=ang(i),x=cx+R*lv*Math.cos(a),y=cy+R*lv*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+    ctx.closePath();ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.stroke();
+    if(lv<1){ctx.fillStyle=txCol;ctx.font='9px system-ui';ctx.textAlign='center';ctx.fillText(Math.round(lv*100)+'%',cx+4,cy-R*lv+3);}
+  });
+  for(var i=0;i<n;i++){
+    var a=ang(i);
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.stroke();
+    var lx=cx+(R+20)*Math.cos(a),ly=cy+(R+20)*Math.sin(a);
+    ctx.fillStyle=txCol;ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(axes[i].l,lx,ly);
+  }
+  if(avgVals){
+    ctx.beginPath();
+    avgVals.forEach(function(v,i){var a=ang(i),x=cx+R*v*Math.cos(a),y=cy+R*v*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.closePath();ctx.strokeStyle='#64748b';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(100,116,139,0.1)';ctx.fill();
+  }
+  ctx.beginPath();
+  vals.forEach(function(v,i){var a=ang(i),x=cx+R*v*Math.cos(a),y=cy+R*v*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.closePath();ctx.strokeStyle='#f97316';ctx.lineWidth=2.5;ctx.stroke();
+  ctx.fillStyle='rgba(249,115,22,0.18)';ctx.fill();
+  vals.forEach(function(v,i){var a=ang(i),x=cx+R*v*Math.cos(a),y=cy+R*v*Math.sin(a);ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle='#f97316';ctx.fill();});
+  document.getElementById('gLegend').innerHTML=
+    '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><span style="width:14px;height:3px;background:#f97316;display:inline-block;border-radius:2px"></span>'+r.name+'</span>'+
+    (showAvg?'<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><span style="width:14px;height:3px;background:#94a3b8;display:inline-block;border-radius:2px;border-top:2px dashed #94a3b8;background:none"></span>Moyenne groupe</span>':'');
+}
+
+function drawDonut(){
+  var v=selV('gDonutV')||'profil';
+  var rs=Object.values(API.restaurantStats||{});
+  var slices=[];
+  if(v==='profil'){
+    document.getElementById('gTitle').textContent='Repartition des profils comportementaux';
+    document.getElementById('gSub').textContent=rs.length+' etablissements classes par profil Octopus';
+    var cnt={};
+    rs.forEach(function(r){cnt[r.profile]=(cnt[r.profile]||0)+1;});
+    slices=Object.entries(cnt).map(function(e){return{l:(r.profileData&&r.profileData.label)||e[0],v:e[1],col:G_PROFILE_COLORS[e[0]]||'#94a3b8',lbl:e[0]};});
+    rs.forEach(function(r){slices.forEach(function(s){if(s.lbl===r.profile&&r.profileData)s.l=r.profileData.label;});});
+  }else if(v==='tranche'){
+    document.getElementById('gTitle').textContent='Distribution des scores KPI Global';
+    document.getElementById('gSub').textContent='Repartition par tranche de conformite';
+    var t80=rs.filter(function(r){return r.complianceScore&&r.complianceScore.score>=80}).length;
+    var t50=rs.filter(function(r){return r.complianceScore&&r.complianceScore.score>=50&&r.complianceScore.score<80}).length;
+    var t0=rs.filter(function(r){return !r.complianceScore||r.complianceScore.score<50}).length;
+    slices=[{l:'Excellent (≥80)',v:t80,col:'#16a34a'},{l:'Moyen (50-79)',v:t50,col:'#f97316'},{l:'Insuffisant (<50)',v:t0,col:'#dc2626'}];
+  }else{
+    document.getElementById('gTitle').textContent='Conformite par module HACCP';
+    document.getElementById('gSub').textContent='Moyenne groupe - etablissements actifs par module';
+    var mods=[
+      {l:'Frigos',mod:'Températures frigos',col:'#1a3b6b'},
+      {l:'Nettoyage',mod:'Plans de nettoyage',col:'#16a34a'},
+      {l:'Receptions',mod:'Réceptions',col:'#f97316'},
+      {l:'Etiquettes',mod:'Étiquettes DLC',col:'#0ea5e9'},
+      {l:'Refroid.',mod:'Refroidissement',col:'#8b5cf6'},
+    ];
+    slices=mods.map(function(m){
+      return{l:m.l,v:rs.filter(function(r){return r.modules[m.mod]&&r.modules[m.mod].total>0}).length,col:m.col};
+    });
+  }
+  var total=slices.reduce(function(s,x){return s+x.v},0)||1;
+  var g=getCanvas();if(!g)return;
+  var sz=Math.min(g.W,360);
+  g.c.width=sz;g.c.height=sz;
+  var ctx=g.ctx;ctx.clearRect(0,0,sz,sz);
+  var cx=sz/2,cy=sz/2,R=sz*0.38,RI=sz*0.22;
+  var dk=isDark(),txCol=dk?'#e2e8f0':'#1e293b';
+  var start=-Math.PI/2;
+  slices.forEach(function(s){
+    var sw=(s.v/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,start,start+sw);ctx.closePath();
+    ctx.fillStyle=s.col;ctx.fill();
+    ctx.strokeStyle=dk?'#1a2537':'#fff';ctx.lineWidth=2;ctx.stroke();
+    if(s.v>0){
+      var mid=start+sw/2,tx=cx+(R*0.7)*Math.cos(mid),ty=cy+(R*0.7)*Math.sin(mid);
+      ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(Math.round(s.v/total*100)+'%',tx,ty);
+    }
+    start+=sw;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,RI,0,Math.PI*2);ctx.fillStyle=dk?'#1a2537':'#fff';ctx.fill();
+  ctx.fillStyle=txCol;ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(total,cx,cy-7);ctx.font='10px system-ui';ctx.fillStyle=dk?'#94a3b8':'#64748b';ctx.fillText('etablissements',cx,cy+9);
+  document.getElementById('gLegend').innerHTML=slices.map(function(s){
+    return'<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><span style="width:12px;height:12px;border-radius:50%;background:'+s.col+';display:inline-block"></span>'+s.l+' ('+s.v+')</span>';
+  }).join('');
+}
+
+function drawHmap(){
+  var sortKey=selV('gHmapSort')||'score';
+  var N=selN('gHmapN',20);
+  document.getElementById('gTitle').textContent='Heatmap conformite - etablissements x modules';
+  document.getElementById('gSub').textContent='Vert = conforme, Rouge = insuffisant, Gris = inactif';
+  document.getElementById('gLegend').innerHTML='';
+  var COLS=[
+    {k:'score',l:'KPI',pct:true},{k:'frigos',l:'Frigos',pct:true},{k:'nettoyage',l:'Net.',pct:true},
+    {k:'receptions',l:'Recep.',pct:false},{k:'etiquettes',l:'Etiq.',pct:false},{k:'refroid',l:'Refr.',pct:false},
+  ];
+  var rs=Object.values(API.restaurantStats||{}).slice().sort(function(a,b){return getIndVal(b,sortKey)-getIndVal(a,sortKey)}).slice(0,N);
+  var maxByCol={};
+  COLS.forEach(function(c){if(!c.pct){maxByCol[c.k]=Math.max.apply(null,rs.map(function(r){return getIndVal(r,c.k)}).concat([1]));}});
+  var CELL=28,LPAD=0,THEAD=32;
+  var g=getCanvas();if(!g)return;
+  var maxName=Math.min(26,Math.max.apply(null,rs.map(function(r){return r.name.length})));
+  LPAD=maxName*6.8+10;
+  var W=Math.max(g.W,LPAD+COLS.length*(CELL+2)+20);
+  var H=THEAD+rs.length*(CELL+2)+10;
+  g.c.width=W;g.c.height=H;
+  var ctx=g.ctx;ctx.clearRect(0,0,W,H);
+  var dk=isDark(),txCol=dk?'#e2e8f0':'#1e293b',muCol=dk?'#64748b':'#94a3b8';
+  var cellX=function(ci){return LPAD+ci*(CELL+2);};
+  COLS.forEach(function(c,ci){
+    ctx.fillStyle=muCol;ctx.font='bold 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(c.l,cellX(ci)+CELL/2,THEAD/2);
+  });
+  rs.forEach(function(r,ri){
+    var y=THEAD+ri*(CELL+2);
+    ctx.fillStyle=txCol;ctx.font='11px system-ui';ctx.textAlign='right';ctx.textBaseline='middle';
+    var lbl=r.name.length>maxName?r.name.slice(0,maxName-1)+'…':r.name;
+    ctx.fillText(lbl,LPAD-8,y+CELL/2);
+    COLS.forEach(function(c,ci){
+      var v=getIndVal(r,c.k);
+      var pct=c.pct?v:(v>0?(v/maxByCol[c.k])*100:null);
+      var active=c.pct?(v>0):((r.modules&&r.modules[c.k==='score'?'KPI':null])||v>0);
+      var x=cellX(ci);
+      var bg,tc;
+      if(pct===null||(!c.pct&&v===0)){bg=dk?'#1e2f43':'#f1f5f9';tc=muCol;}
+      else if(pct>=80){bg='rgba(22,163,74,0.85)';tc='#fff';}
+      else if(pct>=50){bg='rgba(249,115,22,0.85)';tc='#fff';}
+      else{bg='rgba(220,38,38,0.85)';tc='#fff';}
+      ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,CELL,CELL,4):ctx.rect(x,y,CELL,CELL);ctx.fill();
+      ctx.fillStyle=tc;ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(v===0&&!c.pct?'–':(c.pct?v+'%':v),x+CELL/2,y+CELL/2);
+    });
+  });
+}
+
+function drawLine(){
+  var sel=document.getElementById('gLineEtab');
+  var chosen=[];
+  if(sel){for(var i=0;i<sel.options.length;i++){if(sel.options[i].selected)chosen.push(sel.options[i].value);}}
+  if(!chosen.length)chosen=['all'];
+  var dates=((API.period&&API.period.allDates)||[]).map(function(d){return d.slice(5).replace('-','/')});
+  var n=dates.length;if(!n)return;
+  document.getElementById('gTitle').textContent='Courbe d\'activite journaliere';
+  document.getElementById('gSub').textContent='Nombre d\'actions enregistrees par jour';
+  var PALETTE=['#1a3b6b','#f97316','#16a34a','#8b5cf6','#0ea5e9','#dc2626','#d97706'];
+  var series=chosen.map(function(id,si){
+    var vals;
+    if(id==='all'){vals=API.groupDailyTotals||[];return{l:'Groupe',vals:vals,col:PALETTE[si%PALETTE.length]};}
+    var rs=API.restaurantStats[id];
+    return{l:rs?rs.name:'?',vals:rs?rs.totalVals||[]:Array(n).fill(0),col:PALETTE[si%PALETTE.length]};
+  });
+  var allVals=series.reduce(function(a,s){return a.concat(s.vals);},[]);
+  var maxV=Math.max.apply(null,allVals.concat([1]));
+  var PAD={t:20,r:20,b:52,l:48};
+  var g=getCanvas();if(!g)return;
+  var H=280;
+  g.c.width=g.W;g.c.height=H;
+  var ctx=g.ctx;ctx.clearRect(0,0,g.W,H);
+  var dk=isDark(),gCol=dk?'#2d3f55':'#e2e8f0',txCol=dk?'#94a3b8':'#64748b';
+  var cw=g.W-PAD.l-PAD.r,ch=H-PAD.t-PAD.b;
+  [0,Math.round(maxV*0.5),maxV].forEach(function(v){
+    var y=PAD.t+ch-(v/maxV)*ch;
+    ctx.beginPath();ctx.strokeStyle=gCol;ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=txCol;ctx.textAlign='right';ctx.font='10px system-ui';ctx.fillText(v,PAD.l-5,y+4);
+  });
+  var avg=allVals.length>0?allVals.reduce(function(a,b){return a+b},0)/allVals.length:0;
+  var avgY=PAD.t+ch-(avg/maxV)*ch;
+  ctx.beginPath();ctx.strokeStyle='rgba(100,116,139,0.5)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.moveTo(PAD.l,avgY);ctx.lineTo(PAD.l+cw,avgY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(100,116,139,0.7)';ctx.font='9px system-ui';ctx.textAlign='left';ctx.fillText('moy '+Math.round(avg),PAD.l+3,avgY-4);
+  series.forEach(function(s){
+    var pts=s.vals.map(function(v,i){return{x:PAD.l+(i/(n-1||1))*cw,y:PAD.t+ch-(v/maxV)*ch};});
+    if(pts.length<2)return;
+    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+    for(var i=1;i<pts.length;i++){
+      var cpx=(pts[i-1].x+pts[i].x)/2;
+      ctx.bezierCurveTo(cpx,pts[i-1].y,cpx,pts[i].y,pts[i].x,pts[i].y);
+    }
+    ctx.strokeStyle=s.col;ctx.lineWidth=2.5;ctx.stroke();
+    ctx.fillStyle=s.col+'22';
+    ctx.lineTo(pts[pts.length-1].x,PAD.t+ch);ctx.lineTo(pts[0].x,PAD.t+ch);ctx.closePath();ctx.fill();
+  });
+  ctx.fillStyle=txCol;ctx.textAlign='center';ctx.font='10px system-ui';
+  var stepL=Math.max(1,Math.ceil(n/12));
+  dates.forEach(function(d,i){
+    if(i%stepL!==0&&i!==n-1)return;
+    ctx.fillText(d,PAD.l+(i/(n-1||1))*cw,PAD.t+ch+16);
+  });
+  document.getElementById('gLegend').innerHTML=series.map(function(s){
+    return'<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px"><span style="width:18px;height:3px;background:'+s.col+';display:inline-block;border-radius:2px"></span>'+s.l+'</span>';
+  }).join('');
 }
 
 function setTab(t){
   document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)});
   document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('active',p.id==='tab-'+t)});
   if(t==='suivi')setTimeout(drawSuivi,50);
-  if(t==='graphiques')setTimeout(drawBar,50);
+  if(t==='graphiques'){buildGOpts();setTimeout(drawChart,50);}
 }
 
 function exportCSV(){
@@ -587,7 +964,7 @@ function showLoaderError(msg){document.getElementById('loader').innerHTML='<div 
 function hideLoader(){document.getElementById('loader').classList.add('hidden')}
 
 var rT;
-window.addEventListener('resize',function(){clearTimeout(rT);rT=setTimeout(function(){var a=document.querySelector('.pane.active');if(a&&a.id==='tab-suivi')drawSuivi();if(a&&a.id==='tab-graphiques')drawBar()},150)});
+window.addEventListener('resize',function(){clearTimeout(rT);rT=setTimeout(function(){var a=document.querySelector('.pane.active');if(a&&a.id==='tab-suivi')drawSuivi();if(a&&a.id==='tab-graphiques')drawChart()},150)});
 
 loadData();
 </script></body></html>
